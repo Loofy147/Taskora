@@ -8,7 +8,6 @@ import {
   FileArchive,
   FileSpreadsheet,
   FileText,
-  Files,
   Headphones,
   Heart,
   Image,
