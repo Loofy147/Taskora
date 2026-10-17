@@ -6,9 +6,9 @@
 ## Implementation tracks — keep these separate
 
 - **Track A — GitHub source:** [`Loofy147/Taskora`](https://github.com/Loofy147/Taskora), `main` at audit baseline `5cc189106e3eb0a897708c52beeefe4e7e60ae1b`. This is the maintained React/TanStack Start implementation. The shipped app environment keeps auth and database provisioning off. Its whole-workspace snapshot bridge has embedded PGlite integration tests, but live authenticated PostgreSQL staging remains open.
-- **Track B — AppDeploy staging:** [live app](https://taskora-ube0f6.v2.appdeploy.ai/), app ID `taskora-ube0f6`, deployed source revision `1792264284898`. This is a separate codebase with AppDeploy auth and a key-value managed database. It contains user-owned per-task records and a task-level migration control, but the authenticated CRUD/migration workflow still needs executed end-to-end validation. It is not generated from, or synchronized with, Track A.
+- **Track B — AppDeploy staging:** [live app](https://taskora-ube0f6.v2.appdeploy.ai/), app ID `taskora-ube0f6`, deployed source revision `1792270506351` (v9; browser render checked, E2E still unverified). This is a separate codebase with AppDeploy auth and a key-value managed database. It contains user-owned per-task records and a task-level migration control, but the authenticated CRUD/migration workflow still needs executed end-to-end validation. It is not generated from, or synchronized with, Track A.
 - **Evidence boundary:** the AppDeploy system reported status `ready` and no frontend/backend/network errors in its QA snapshot; it did not return an executed E2E result. The user reported account creation and trying inputs, but no specific migration/CRUD test outcome has been recorded. See [AppDeploy staging status](APPDEPLOY_STAGING.md).
-- **One release candidate at a time:** do not spend AppDeploy daily deployment capacity on intermediate edits. Prepare the whole candidate and use [the final release runbook](FINAL_RELEASE_RUNBOOK.md).
+- **One release candidate at a time:** do not spend AppDeploy daily deployment capacity on intermediate edits. Prepare the whole candidate and use [the final release runbook](FINAL_RELEASE_RUNBOOK.md) and [version/capability matrix](VERSION_CAPABILITY_MATRIX.md).
 
 ## Current boundary
 
@@ -129,3 +129,12 @@ Before enabling RLS in production, verify the database engine's security patch l
 ## Deployment-capacity discipline
 
 The AppDeploy live source is updated through the deployment operation; there is no separate unpublished AppDeploy source-save step. Keep code corrections, tests, QA and documentation in a single candidate. Do not deploy for documentation-only edits. Use `docs/FINAL_RELEASE_RUNBOOK.md` for the preflight, E2E evidence and release decision. A limited daily deployment allowance is an operational constraint; it is not a reason to skip verification.
+
+
+## P0 runtime incident — blank screen (2026-10-17)
+
+Track B was reported to stop rendering. External browser evidence confirmed a blank v7 viewport even though AppDeploy status was ready and the QA error lists were empty. Source inspection found a deterministic temporal-dead-zone failure: currentUserId appeared in the first effect dependency array before its const declaration. v8 made the caught rendering error visible; v9 moved the declaration above first use and a fresh external screenshot showed the normal Taskora shell.
+
+Current Track B deployed revision: 1792270506351 (v9). Status is ready; QA snapshot reports no frontend/backend/network errors. The E2E result remains unavailable/unreturned, so this is **render-checked, not E2E-verified**.
+
+Use [the version and capability matrix](VERSION_CAPABILITY_MATRIX.md) as the complete target map. The next gate is to execute the startup sanity workflow and account/persistence tests; do not treat another clean status response as a substitute for rendered-page inspection.
