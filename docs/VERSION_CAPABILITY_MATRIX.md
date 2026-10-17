@@ -16,8 +16,8 @@
 
 - **App ID:** taskora-ube0f6
 - **URL:** https://taskora-ube0f6.v2.appdeploy.ai/
-- **Current revision:** 1792270506351 (v9)
-- **Observed result:** deployment status is ready; QA snapshot reported no frontend, backend or network errors. An external screenshot showed the normal Taskora shell after fixing a deterministic first-render exception.
+- **Current revision:** 1792271940323 (v10; render-checked, E2E unverified)
+- **Observed result:** v10 deployment status is ready; validation is valid with no errors (one non-blocking warning recommends focusing the seven-test suite). The QA snapshot reports no frontend/backend/network errors and provides desktop/mobile screenshots. An executed E2E result was not returned.
 - **Root cause:** an early effect dependency array referenced currentUserId before its const declaration, triggering a temporal-dead-zone error while rendering. The declaration was moved above its first use.
 - **Still unknown:** the AppDeploy status response did not return an executed E2E result. Real sign-in, migration, data persistence, concurrent edits and account isolation remain unverified end to end.
 - **Track boundary:** this v9 revision is AppDeploy source. It is not the GitHub application deployed, and it has not been synchronized into GitHub source.
@@ -33,7 +33,7 @@
 | Due dates and timed tasks | Date UI and optional start/end fields exist; server validates HH:mm and end-after-start; E2E not verified | V0.2 Personal workflow | Valid, incomplete, equal, reversed and malformed time ranges; calendar/agenda after reload |
 | JSON backup/export/restore | Implemented as personal fallback; live round-trip not recorded | V0.2 Personal workflow | Export/import, invalid/oversized backup rejection, explicit restore confirmation and round-trip equivalence |
 | Individual per-task cloud records | Protected per-task list/create/update/delete routes and revisions exist; live DB workflow not E2E verified | V0.3 Durable data | Real sign-in, create/update/delete, refresh/re-login persistence, stale revision conflicts |
-| Snapshot-to-task migration | Explicit migration exists; interrupted migration may leave unindexed records | V0.3 Durable data | Preflight/dry-run, idempotent retry, conflict reporting, ownership-safe orphan recovery, zero data loss |
+| Snapshot-to-task migration | v10 merges saved and submitted snapshot tasks, rejects same-ID divergent content, preflights existing task records, and blocks activation on workspace revision change; E2E unverified | V0.3 Durable data | Execute preservation/conflict/revision-race tests, verify idempotent retry and ownership-safe recovery, prove zero data loss |
 | Account-specific browser data | Scoped key strategy exists; two-account browser switching not proven | V0.3 Durable data | Accounts A/B in the same browser; sign-out, sign-in, reload, no cross-account data bleed |
 | Role/responsibility fields | Editable local/sample profiles and workload indicators exist; no authorization controls | V0.4 Team workspaces | Persist real members, invite/accept/revoke, enforced owner/admin/member/viewer capability matrix |
 | Shared workspace and invitations | Not implemented | V0.4 Team workspaces | Server-side membership, tenant authorization, invite expiry/revocation, negative cross-workspace tests |
@@ -56,6 +56,7 @@
 - [ ] Execute the startup sanity workflow on the deployed revision.
 - [ ] Verify mobile viewport, browser console/page errors, direct reload and storage-denied scenarios.
 - [ ] Add a regression test that fails if the app root remains blank and separately asserts the recovery screen on a deliberate render failure.
+- [x] Add Track B v10 source guards for snapshot task preservation, same-ID conflict rejection, existing-record preflight, and stale workspace revision detection; live E2E verification remains open.
 
 **Exit gate:** shell renders or an explicit, actionable failure state appears; never a silent blank page. All visible routes load without uncaught page errors.
 
