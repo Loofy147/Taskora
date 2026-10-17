@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { mkdtempSync, mkdirSync, readFileSync, existsSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -50,4 +51,14 @@ test("auth-on mode fails clearly if the canonical schema is missing", () => {
   const env = fixture(null);
   assert.throws(() => prepareAuthMigration(env.root, true), /canonical auth schema is missing/i);
   assert.equal(existsSync(env.targetPath), false);
+});
+
+
+test("the command wrapper prepares auth migrations before starting Vite", () => {
+  const wrapper = readFileSync(new URL("./with-app-env.mjs", import.meta.url), "utf8");
+  assert.ok(wrapper.includes('prepareAuthMigration(projectRoot(), env.VITE_AUTH_ENABLED !== "false")'));
+  assert.ok(
+    wrapper.indexOf("prepareAuthMigration(projectRoot()") < wrapper.indexOf("const child = spawn("),
+    "auth schema preparation must finish before dev/build/preview starts",
+  );
 });

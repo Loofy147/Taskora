@@ -10,7 +10,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { isMigrationFile, migrationName, pendingMigrations } from "./migration-plan.mjs";
+import { isMigrationFile, migrationName, migrationsForAuthMode, pendingMigrations } from "./migration-plan.mjs";
 import { projectRoot } from "./with-app-env.mjs";
 
 const AUTH_MIGRATION = "0001_auth.sql";
@@ -58,7 +58,7 @@ test("non-.sql entries are dropped (readdir also yields the auth/ directory)", (
 
 test("the auth schema ships outside the globbed directory", () => {
   const migrationsDir = join(projectRoot(), "migrations");
-  const pending = pendingMigrations(readdirSync(migrationsDir), []);
+  const pending = pendingMigrations(migrationsForAuthMode(readdirSync(migrationsDir), "false"), []);
   assert.deepEqual(pending.map(({ name }) => name), ["0001_workspace_storage.sql"]);
   assert.ok(!pending.some(({ name }) => name === AUTH_MIGRATION));
   assert.ok(readdirSync(join(migrationsDir, "auth")).includes(AUTH_MIGRATION));
@@ -89,4 +89,12 @@ test("the copy check reads both files and catches an edit", () => {
   writeFileSync(join(root, "migrations", AUTH_MIGRATION), "create table t (x int);\n");
   const drifted = authSchemaCopy(root);
   assert.notEqual(drifted.copy, drifted.source);
+});
+
+
+test("the auth migration is filtered only when auth is explicitly disabled", () => {
+  const paths = ["0001_workspace_storage.sql", "/migrations/0001_auth.sql"];
+  assert.deepEqual(migrationsForAuthMode(paths, "false"), ["0001_workspace_storage.sql"]);
+  assert.deepEqual(migrationsForAuthMode(paths, "true"), paths);
+  assert.deepEqual(migrationsForAuthMode(paths, undefined), paths);
 });

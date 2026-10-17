@@ -1,4 +1,4 @@
-import { pendingMigrations } from "../../scripts/migration-plan.mjs";
+import { migrationsForAuthMode, pendingMigrations } from "../../scripts/migration-plan.mjs";
 
 /** Which database backend is active. */
 export type DbSource = "neon" | "pglite";
@@ -175,7 +175,11 @@ async function createPgliteSql(): Promise<Sql> {
       "select name from _migrations",
     );
     const done = doneRows.rows.map((r) => r.name);
-    for (const { name, path } of pendingMigrations(Object.keys(migrations), done)) {
+    const configuredAuthFlag =
+      import.meta.env?.VITE_AUTH_ENABLED ??
+      (typeof process !== "undefined" ? process.env.VITE_AUTH_ENABLED : undefined);
+    const activeMigrationPaths = migrationsForAuthMode(Object.keys(migrations), configuredAuthFlag);
+    for (const { name, path } of pendingMigrations(activeMigrationPaths, done)) {
       // Apply + record atomically (parity with scripts/migrate.mjs) so a failed
       // statement can't leave a file half-applied but untracked.
       await pg.transaction(async (tx) => {

@@ -44,3 +44,18 @@ export function pendingMigrations(paths, applied) {
     .sort((a, b) => a.name.localeCompare(b.name))
     .filter(({ name }) => !done.has(name));
 }
+
+
+/**
+ * Exclude the generated Better Auth migration only when auth is explicitly off.
+ * Undefined means enabled, matching the app's rule: only the string "false"
+ * disables sign-in. A stale generated copy may remain after changing modes.
+ * @param {Iterable<string>} paths
+ * @param {string | undefined} authEnabledFlag
+ * @returns {string[]}
+ */
+export function migrationsForAuthMode(paths, authEnabledFlag) {
+  const allPaths = [...paths];
+  if (authEnabledFlag !== "false") return allPaths;
+  return allPaths.filter((path) => migrationName(path) !== "0001_auth.sql");
+}
