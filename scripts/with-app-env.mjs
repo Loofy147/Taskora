@@ -113,7 +113,7 @@ function main(argv) {
   }
   const env = mergeAppEnv(readAppEnv(projectRoot()), process.env);
   try {
-    const result = prepareAuthMigration(projectRoot(), env.VITE_AUTH_ENABLED !== "false");
+    prepareAuthMigration(projectRoot(), env.VITE_AUTH_ENABLED !== "false");
   } catch (err) {
     console.error("[auth-migration] preparation failed:", err?.message || err);
     process.exit(1);
