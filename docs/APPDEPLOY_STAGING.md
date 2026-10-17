@@ -3,7 +3,7 @@
 **Reviewed:** 2026-10-17  
 **App:** `taskora-ube0f6`  
 **URL:** https://taskora-ube0f6.v2.appdeploy.ai/  
-**Latest deployed source revision (render-checked):** `1792270506351` (v9)  
+**Latest deployed source revision (render-checked):** `1792271940323` (v10; E2E result unreturned)  
 **Release state:** staging only; not approved for production use.
 
 ## Scope and identity
@@ -45,7 +45,7 @@ All routes below are defined in the AppDeploy staging source and require `requir
 |---|---|---|
 | `GET /api/health` | Runtime health | Public health indicator, not an auth/data test |
 | `GET /api/task-mode` | Inspect whether per-task mode is enabled | Must fail closed if the read is inconclusive |
-| `POST /api/task-mode` | Explicitly migrate local snapshot tasks and activate per-task mode | Writes task records sequentially, then updates the manifest |
+| `POST /api/task-mode` | Explicitly migrate local snapshot tasks and activate per-task mode | Merges saved and local snapshot tasks; rejects same-ID conflicts; preflights existing records; refuses activation if the workspace revision changes |
 | `GET /api/tasks?cursor=...` | List tasks in bounded pages | Cursor embeds the manifest revision; stale cursor returns conflict |
 | `POST /api/tasks` | Create a task | Transactionally adds task record and updates manifest |
 | `PUT /api/tasks/:taskId` | Update task with `expectedRevision` | Stale revision must be rejected |
@@ -116,3 +116,12 @@ Use a disposable staging account or test task for destructive steps.
 The primary sanity test must assert that the Board navigation, global search and New task control render before interacting with the app. Browser verification must capture both the page screenshot and console/page errors. The automated test suite must fail a blank-screen condition even if AppDeploy marks the deployment ready.
 
 This incident does not establish production readiness; it establishes the recovery of the visible Taskora shell on AppDeploy v9.
+
+
+## Task migration data-preservation guard — 2026-10-17
+
+- **ESTABLISHED from v10 source:** `POST /api/task-mode` merges tasks from the saved workspace snapshot and submitted local snapshot by task ID. If the same ID has different content across those sources, migration returns `409` before inserting task records.
+- **ESTABLISHED from v10 source:** existing task records are preflighted before inserts; activation also checks that the saved workspace revision has not changed. A detected revision change returns `409` and leaves task-level mode inactive.
+- **Deployment evidence:** revision `1792271940323` is `ready`; AppDeploy reported no frontend, backend, or network errors and produced fresh desktop/mobile QA screenshots.
+- **E2E remains UNKNOWN:** the status response did not return an executed E2E result. Two migration regression cases were added to the deployed test definitions, but their presence is not evidence of execution or passage.
+- **Residual risk:** an interrupted import can still leave identical, owner-scoped task records outside the active index. Retry/recovery must be executed against the deployed AppDeploy database before production approval.

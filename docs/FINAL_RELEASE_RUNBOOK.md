@@ -8,7 +8,7 @@
 Before each task, record which implementation is being changed:
 
 - **GitHub source:** `Loofy147/Taskora`, branch/ref/commit, React/TanStack Start, Better Auth and PostgreSQL/PGlite.
-- **AppDeploy staging port:** app ID `taskora-ube0f6`, current deployed source revision `1792270506351` (v9; browser render checked; E2E unverified), AppDeploy auth and managed key-value database.
+- **AppDeploy staging port:** app ID `taskora-ube0f6`, current deployed source revision `1792271940323` (v10; browser render checked; E2E unverified), AppDeploy auth and managed key-value database.
 
 These are separate artifacts. A CI result on GitHub is not an AppDeploy E2E result. An AppDeploy-ready status is not a GitHub source deployment, a real PostgreSQL migration, or a production gate pass.
 
@@ -46,7 +46,7 @@ All items below must be checked before consuming the deployment slot:
 Use a disposable account and unique test records. Run desktop and mobile checks:
 
 1. App loads, API health visible, sign-in and sign-out.
-2. Task migration preflight, explicit confirmation, successful initial import, idempotent retry.
+2. Task migration preflight and explicit confirmation; prove saved-snapshot-only tasks are retained, conflicting same-ID content fails closed before inserts, a changed workspace revision blocks activation, and identical retries reconcile safely.
 3. Create → edit → change status → comment → refresh/reload → verify server state.
 4. Concurrent stale update → explicit conflict → refresh and recover without lost update.
 5. Delete a test task → refresh/reload → confirm absence and safe tombstone behavior.
