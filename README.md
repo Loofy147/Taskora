@@ -2,7 +2,9 @@
 
 Taskora is a business task-management interface for organizing shared work across tasks, projects, and a sample team.
 
-> **Current state: prototype with an opt-in personal snapshot backend; not production-ready.** The app stores task, project, team, comment, notification, and settings state in the current browser's `localStorage` by default. A versioned PostgreSQL JSONB snapshot path and an opt-in Settings flow are now implemented, but the shipped `.grok/app-env.json` explicitly disables authentication and database provisioning, so cloud persistence is unavailable until deployment authentication and a durable database are configured. This is a personal snapshot sync bridge, not relational per-task CRUD, team sharing, real-time collaboration, invitations, or file uploads.
+> **GitHub source status at `5cc1891`: prototype; not production-ready.** This repository contains the React/TanStack Start implementation. It uses browser-local task state with an opt-in personal whole-workspace snapshot bridge; the shipped `.grok/app-env.json` disables authentication and database provisioning. Repository-level per-task CRUD, live authenticated PostgreSQL, team sharing, invitations and binary file storage are not enabled.
+>
+> **Separate AppDeploy staging port:** a different app has an independently deployed, opt-in task-level persistence implementation. It does not import or track this repository automatically. See [AppDeploy staging status](docs/APPDEPLOY_STAGING.md) and the [final release runbook](docs/FINAL_RELEASE_RUNBOOK.md) before treating either implementation as a production release.
 
 ## Current interface
 
@@ -41,4 +43,11 @@ The workspace package includes App Builder helper scripts and a Vite/TanStack St
 5. **Notifications and digest are not operational.** The notification list is seeded sample data; the daily-digest setting does not send email.
 6. **Backups are not encrypted.** Settings supports versioned export and validated restore; imported data replaces browser state only after explicit confirmation. When cloud sync is active, a restored/reset workspace is also synced to the server. Backup files may contain task text, comments, and team contact details; store them securely.
 
-See [`docs/PRODUCT_AUDIT.md`](docs/PRODUCT_AUDIT.md) for evidence-led findings, [`docs/IMPLEMENTATION_ROADMAP.md`](docs/IMPLEMENTATION_ROADMAP.md) for the staged architecture and test gates, and [`docs/WORKSPACE_BACKUP_FORMAT.md`](docs/WORKSPACE_BACKUP_FORMAT.md) for the backup schema and validation contract.
+See [`docs/PRODUCT_AUDIT.md`](docs/PRODUCT_AUDIT.md) for evidence-led findings, [`docs/IMPLEMENTATION_ROADMAP.md`](docs/IMPLEMENTATION_ROADMAP.md) for staged architecture and test gates, [`docs/WORKSPACE_BACKUP_FORMAT.md`](docs/WORKSPACE_BACKUP_FORMAT.md) for the backup contract, [`docs/APPDEPLOY_STAGING.md`](docs/APPDEPLOY_STAGING.md) for the separate staging app, and [`docs/FINAL_RELEASE_RUNBOOK.md`](docs/FINAL_RELEASE_RUNBOOK.md) for deployment-budget discipline and final acceptance criteria.
+
+
+## Evidence and release policy
+
+A green CI build proves the repository code passed those CI checks; it does not prove that AppDeploy task persistence works end to end. Conversely, a ready AppDeploy deployment does not prove that the GitHub application has been deployed or that its PostgreSQL/authentication gates have passed. Track the exact source revision and test evidence for each implementation separately.
+
+**Deployment policy:** do not deploy after each source edit. Prepare and review the complete change set, update documentation and test definitions, run every non-deployment check available, then use a single final deployment to validate the release candidate. See the runbook.

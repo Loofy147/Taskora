@@ -1,7 +1,7 @@
 # Taskora product and engineering audit
 
 **Audit date:** 2026-10-17  
-**Evidence boundary:** the uploaded source archive and a time-bounded GitHub verification of `Loofy147/Taskora`. Historical pre-import observations are retained below and explicitly marked as superseded where the repository has since changed. No deployed runtime or production database was available to inspect.
+**Evidence boundary:** the GitHub repository `Loofy147/Taskora` and its CI history. Historical pre-import observations are retained below and explicitly marked as superseded where the repository has since changed. The separate AppDeploy staging port is audited independently in [`APPDEPLOY_STAGING.md`](APPDEPLOY_STAGING.md); evidence from that app is not evidence that repository `main` is deployed.
 
 ## Post-import baseline verification — 2026-10-17
 
@@ -141,3 +141,19 @@ This reduces prototype data-loss risk but does **not** change the architecture b
 4. **Operational readiness:** add browser QA, database backup and restore drills, retention rules, rate limiting, structured redacted logs, and deploy/rollback checks before calling the product production-ready.
 
 Do not enable cloud sync in a customer deployment until the auth/database, concurrency, restore, failure-recovery, and two-account isolation gates pass.
+
+
+## Separate AppDeploy staging port — release-preparation review (2026-10-17)
+
+### Evidence ledger
+
+- **ESTABLISHED:** AppDeploy app `taskora-ube0f6` has a live URL: [https://taskora-ube0f6.v2.appdeploy.ai/](https://taskora-ube0f6.v2.appdeploy.ai/).
+- **ESTABLISHED:** deployed source revision `1792264284898` is reported as `ready`.
+- **EXPERIMENTALLY_SUPPORTED, limited:** the corresponding AppDeploy QA snapshot reported no frontend, backend or network errors. The status API returned no executed E2E test result; this is not an end-to-end pass.
+- **USER_REPORTED:** the user created an account and tried some inputs. The specific persistence migration, task CRUD, account-isolation and conflict outcomes have not been recorded.
+- **ESTABLISHED:** the AppDeploy source contains auth-protected routes for task mode, per-task list/create/update/delete and the existing personal snapshot bridge. This is a separate staging codebase using the AppDeploy managed database, not this repository's Better Auth/PostgreSQL implementation.
+- **OPEN:** full migration recovery behavior, concurrent mutations, reload persistence, explicit two-account isolation, signed-out local data separation and recovery from stale pagination cursors need evidence from dedicated test runs.
+
+### Corrective documentation rule
+
+When describing Taskora, always label which track a statement applies to. Do not describe AppDeploy's task endpoints as code present in GitHub `main`, and do not describe this repository's PGlite tests as proof of the live AppDeploy database. The deployment/readiness status, browser checks, and source ref must be recorded independently for each track.
