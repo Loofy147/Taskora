@@ -114,9 +114,6 @@ function main(argv) {
   const env = mergeAppEnv(readAppEnv(projectRoot()), process.env);
   try {
     const result = prepareAuthMigration(projectRoot(), env.VITE_AUTH_ENABLED !== "false");
-    if (result.status === "copied") {
-      console.log("[auth-migration] prepared migrations/0001_auth.sql from the canonical auth schema.");
-    }
   } catch (err) {
     console.error("[auth-migration] preparation failed:", err?.message || err);
     process.exit(1);
