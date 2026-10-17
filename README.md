@@ -51,3 +51,8 @@ See [`docs/PRODUCT_AUDIT.md`](docs/PRODUCT_AUDIT.md) for evidence-led findings, 
 A green CI build proves the repository code passed those CI checks; it does not prove that AppDeploy task persistence works end to end. Conversely, a ready AppDeploy deployment does not prove that the GitHub application has been deployed or that its PostgreSQL/authentication gates have passed. Track the exact source revision and test evidence for each implementation separately.
 
 **Deployment policy:** do not deploy after each source edit. Prepare and review the complete change set, update documentation and test definitions, run every non-deployment check available, then use a single final deployment to validate the release candidate. See the runbook.
+
+
+## Release verification and full roadmap
+
+The AppDeploy staging port recently had a confirmed blank-screen incident and recovery. The current v9 shell was checked with an external browser screenshot, but authenticated task persistence and E2E workflows are still unverified. See the [incident and staging record](docs/APPDEPLOY_STAGING.md), [full version/capability matrix](docs/VERSION_CAPABILITY_MATRIX.md), [implementation roadmap](docs/IMPLEMENTATION_ROADMAP.md), and [final release runbook](docs/FINAL_RELEASE_RUNBOOK.md).
