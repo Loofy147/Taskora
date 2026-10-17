@@ -64,7 +64,7 @@ The source-import finding below describes the repository state before commit `cf
 
 **Status:** `UNKNOWN` for full browser interaction and live-service integration. The post-import CI run verifies automated tests, TypeScript, lint, and a production build at commit `cf60790`; it does not establish browser QA, a live PostgreSQL migration, or production authentication and isolation. Earlier local-environment limitations are recorded below.
 
-**Action applied:** added due-date and workspace-backup regression tests. The current dependency-free test group passes 224/224; this is not a substitute for the full `npm test`, typecheck, lint, build, and browser QA.
+**Action applied:** added due-date and workspace-backup regression tests. At the original local-audit stage, the dependency-free test group passed 224/224 while dependency installation was incomplete. Later, [CI run 39053827997](https://github.com/Loofy147/Taskora/actions/runs/39053827997) passed the configured `npm test`, typecheck, lint, and production build on baseline commit `cf60790`. That baseline run did not include browser QA or live-backend tests; later code revisions require their own CI evidence.
 
 ### P2 — Bundled preview screenshots show the previous brand
 
