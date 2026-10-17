@@ -1,7 +1,14 @@
 # Taskora implementation roadmap
 
 **Updated:** 2026-10-17  
-**Purpose:** order engineering work by risk reduction and user-visible value. This roadmap describes local implementation state; it does not imply deployment or production verification.
+**Purpose:** order engineering work by risk reduction and user-visible value. This roadmap separates the repository implementation from the independent AppDeploy staging port. A code-ready deployment is not a production-readiness claim.
+
+## Implementation tracks — keep these separate
+
+- **Track A — GitHub source:** [`Loofy147/Taskora`](https://github.com/Loofy147/Taskora), `main` at audit baseline `5cc189106e3eb0a897708c52beeefe4e7e60ae1b`. This is the maintained React/TanStack Start implementation. The shipped app environment keeps auth and database provisioning off. Its whole-workspace snapshot bridge has embedded PGlite integration tests, but live authenticated PostgreSQL staging remains open.
+- **Track B — AppDeploy staging:** [live app](https://taskora-ube0f6.v2.appdeploy.ai/), app ID `taskora-ube0f6`, deployed source revision `1792264284898`. This is a separate codebase with AppDeploy auth and a key-value managed database. It contains user-owned per-task records and a task-level migration control, but the authenticated CRUD/migration workflow still needs executed end-to-end validation. It is not generated from, or synchronized with, Track A.
+- **Evidence boundary:** the AppDeploy system reported status `ready` and no frontend/backend/network errors in its QA snapshot; it did not return an executed E2E result. The user reported account creation and trying inputs, but no specific migration/CRUD test outcome has been recorded. See [AppDeploy staging status](APPDEPLOY_STAGING.md).
+- **One release candidate at a time:** do not spend AppDeploy daily deployment capacity on intermediate edits. Prepare the whole candidate and use [the final release runbook](FINAL_RELEASE_RUNBOOK.md).
 
 ## Current boundary
 
@@ -112,4 +119,13 @@ Before enabling RLS in production, verify the database engine's security patch l
 
 ## Immediate next action
 
-Proceed with **Gate 1B: authenticated PostgreSQL staging**. Configure a staging deployment, verify the auth-schema preflight and both migrations, then run browser-level upload/load/restore, failure recovery, reauthentication, and end-to-end two-account isolation tests. Keep cloud sync disabled in the shipped environment until these tests pass. The PGlite integration suite covers the storage service, not the deployed session/DB path.
+**Track A:** proceed with Gate 1B, authenticated PostgreSQL staging, only after selecting the actual deployment environment and providing its secrets securely. Validate auth-schema preflight and migrations, then test browser upload/load/restore, failure recovery, reauthentication and two-account isolation.
+
+**Track B:** first complete the blockers and verification checklist in [`APPDEPLOY_STAGING.md`](APPDEPLOY_STAGING.md), notably interrupted task-migration recovery, stale task-index handling, account isolation and per-task create/update/delete verification. These routes exist in the staging source but are not yet proven by an executed E2E run.
+
+**Release discipline:** prepare one complete release candidate; don't deploy for documentation edits or isolated source changes. Run static/source checks, reconcile docs and regression definitions, and perform one final AppDeploy deployment only when the final candidate is ready.
+
+
+## Deployment-capacity discipline
+
+The AppDeploy live source is updated through the deployment operation; there is no separate unpublished AppDeploy source-save step. Keep code corrections, tests, QA and documentation in a single candidate. Do not deploy for documentation-only edits. Use `docs/FINAL_RELEASE_RUNBOOK.md` for the preflight, E2E evidence and release decision. A limited daily deployment allowance is an operational constraint; it is not a reason to skip verification.
