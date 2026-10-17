@@ -14,6 +14,13 @@
 - **NOT VERIFIED:** the migration runner skipped because `DATABASE_URL` was absent. No live PostgreSQL migration, deployed authentication flow, browser QA, or two-account isolation test is established by this CI run.
 
 
+## Workspace storage integration revalidation — 2026-10-17
+
+- **EXPERIMENTALLY_SUPPORTED:** commit [`52a2b84`](https://github.com/Loofy147/Taskora/commit/52a2b841294e95a3121300a8c72f664434e33d40) adds six server-storage integration scenarios against an isolated embedded PGlite database. [Post-merge CI run 39056875032](https://github.com/Loofy147/Taskora/actions/runs/39056875032) passed the scripted suite, application/unit/integration suite, typecheck, lint, and build.
+- Covered outcomes: read-only inspection, snapshot initialize/load round-trip, isolation of different server-supplied user identities, cross-account write denial, one-winner concurrent initialization, compare-and-swap concurrent writes, event consistency, invalid snapshot rejection, and the shared-demo-identity guard.
+- **SCOPE LIMIT:** these tests exercise the storage service with distinct user IDs; they do not simulate a real Better Auth login, a browser session, or a live database provider. The test file fails immediately if `DATABASE_URL` is set, so CI cannot accidentally write to a configured staging/production database.
+- **NOT VERIFIED:** applying migrations to live PostgreSQL, real OAuth/session lifecycle, browser upload/load/restore, or end-to-end two-account isolation through deployed HTTP endpoints. Those remain the open Gate 1B exit criteria.
+
 ## Historical findings from the initial audit
 
 The source-import finding below describes the repository state before commit `cf60790`. It is preserved as an audit trail, not as the current repository state.
