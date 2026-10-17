@@ -1,14 +1,12 @@
-import { lazy, Suspense, useEffect } from "react";
+import { useEffect } from "react";
 import { Toaster } from "sonner";
 import { Board } from "@/components/board";
 import { Composer, DeleteDialog } from "@/components/composer";
 import { DetailsPanel } from "@/components/details";
 import { Shell } from "@/components/shell";
-import { CalendarView, FilesView, ListView, ProjectsView, SettingsView, TeamView } from "@/components/views";
+import { CalendarView, FilesView, ListView, ProjectsView, ReportsView, SettingsView, TeamView } from "@/components/views";
 import { useApp } from "@/lib/store";
 import { resumeWorkspaceSyncIfEnabled } from "@/lib/workspace-sync";
-
-const ReportsView = lazy(() => import("@/components/reports-view").then((module) => ({ default: module.ReportsView })));
 
 export function App() {
   const view = useApp((s) => s.view);
@@ -25,11 +23,7 @@ export function App() {
             {view === "team" && <TeamView />}
             {view === "calendar" && <CalendarView />}
             {view === "files" && <FilesView />}
-            {view === "reports" && (
-              <Suspense fallback={<div className="px-4 py-5 text-sm text-muted" role="status">Loading reports…</div>}>
-                <ReportsView />
-              </Suspense>
-            )}
+            {view === "reports" && <ReportsView />}
             {view === "settings" && <SettingsView />}
           </main>
           <DetailsPanel />

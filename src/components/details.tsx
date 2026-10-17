@@ -2,8 +2,7 @@ import { useRef, useState, type ReactNode } from "react";
 import { ArrowLeft, Calendar, CheckCircle2, Folder, MoreHorizontal, Plus, Send, Trash2, UserRound, X } from "lucide-react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { toast } from "sonner";
-import { Avatar, AvatarStack, FileGlyph, Meter, PriorityPill, TaskGlyph } from "@/components/bits";
-import { STATUS_LABEL } from "@/components/view-config";
+import { Avatar, AvatarStack, FileGlyph, Meter, PriorityPill, STATUS_LABEL, TaskGlyph } from "@/components/bits";
 import { formatStamp } from "@/lib/format";
 import { ME, type Priority, type Status } from "@/lib/types";
 import { useApp } from "@/lib/store";
@@ -31,6 +30,7 @@ function DetailsBody() {
   const [sub, setSub] = useState("");
   const [comment, setComment] = useState("");
   if (!task) return null;
+  const project = projects.find((item) => item.id === task.projectId);
   const creator = members.find((item) => item.id === task.createdById);
   const done = task.subtasks.filter((item) => item.done).length;
 

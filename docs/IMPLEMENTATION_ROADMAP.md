@@ -15,8 +15,7 @@
 | Team workspaces and invitations | Not implemented | Sample team members are not verified accounts |
 | Real file upload/download | Not implemented | Current attachments are metadata references only |
 | Email, notification delivery, audit/retention runbooks | Not implemented / partial | UI notifications are sample data; a small workspace snapshot event ledger exists locally |
-| Lint / initial JavaScript chunk baseline | Historical baseline; remeasure after changes | Commit `cf60790` reported six lint warnings and a 701.08 kB client chunk (190.83 kB gzip); later commits require their own CI evidence for current counts and output sizes |
-| Repository import and remote CI | Complete at baseline commit `cf60790` | Full source tree is present on `main`; temporary transport/importer are absent; [CI run 39053827997](https://github.com/Loofy147/Taskora/actions/runs/39053827997) passed tests, typecheck, lint, and build on that exact SHA |
+| Repository import and remote CI | In progress | A bootstrap transport is staged on GitHub; verify the import workflow extracted source and normal CI completed before treating `main` as the source of truth |
 
 ## Recommended solution
 
@@ -26,15 +25,13 @@ The local snapshot bridge is an interim adapter: it validates the whole payload,
 
 ## Execution sequence and exit gates
 
-### Gate 0 — Repository source of truth (COMPLETE at baseline commit `cf60790`)
+### Gate 0 — Repository source of truth
 
-Completion evidence:
+1. Complete the GitHub authentication step and run the staged source importer.
+2. Verify that `.taskora-import/` and the temporary importer workflow disappear, and that the root contains `src/`, `package.json`, `migrations/`, and the project docs.
+3. Inspect the imported commit and require the normal CI workflow to finish on that exact SHA.
 
-1. The application tree is present at the root of `main`, including `src/`, `package.json`, `migrations/`, and the project documentation.
-2. `.taskora-import/` and `.github/workflows/import-taskora-source.yml` are absent.
-3. [GitHub Actions run 39053827997](https://github.com/Loofy147/Taskora/actions/runs/39053827997) passed the configured tests, TypeScript check, lint, and production build against the exact source-population commit.
-
-**Exit:** repository import is complete. A successful CI build still does not mean a live database migration or production readiness; those belong to Gate 1 and the later operational gates.
+**Exit:** complete source tree is on `main`; CI results are visible and attached to the commit. A staged ZIP or passing local tests alone does not satisfy this gate.
 
 ### Gate 1 — Authenticated personal snapshots
 
@@ -103,4 +100,4 @@ Before enabling RLS in production, verify the database engine's security patch l
 
 ## Immediate next action
 
-Proceed with **Gate 1: authenticated personal snapshots** in a controlled staging environment. Configure real authentication and PostgreSQL via deployment secrets, apply `0001_workspace_storage.sql`, and run browser-level upload/load/restore, concurrency-conflict, failure-recovery, reauthentication, and two-account isolation tests. Keep cloud sync disabled in the shipped environment until these tests pass. For every code change, use that change's own CI run as evidence; the earlier green CI result applies to commit `cf60790` only.
+Complete the repository import connection, verify the real code is on GitHub, then commit the local snapshot bridge and roadmap as a separate change. The current local dependency-free regression suite is green (224/224 tests); full npm install, the TypeScript-dependent test phase, application-wide typecheck, lint, build and browser/backend integration remain open until dependencies and remote CI are available.

@@ -2,11 +2,11 @@ import { useMemo, useState, type ReactNode } from "react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Bell, ChevronDown, Menu, Search, Settings, Users, X } from "lucide-react";
 import { formatStamp, isOverdue, todayKey } from "@/lib/format";
-import { ME, type SortKey } from "@/lib/types";
+import { scopeCount } from "@/lib/filters";
+import { ME, type Quick, type SortKey } from "@/lib/types";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { Avatar, Logo } from "@/components/bits";
-import { NAV, QUICKS } from "@/components/view-config";
+import { Avatar, Logo, NAV, QUICKS } from "@/components/bits";
 
 const SORTS: { id: SortKey; label: string }[] = [
   { id: "due", label: "Due Date" },
@@ -450,3 +450,22 @@ export function SortMenu() {
   );
 }
 
+export function useFilterState() {
+  const tasks = useApp((s) => s.tasks);
+  const projects = useApp((s) => s.projects);
+  const members = useApp((s) => s.members);
+  const scope = useApp((s) => s.scope);
+  const quick = useApp((s) => s.quick);
+  const query = useApp((s) => s.query);
+  const projectId = useApp((s) => s.projectId);
+  const memberId = useApp((s) => s.memberId);
+  const calendarDay = useApp((s) => s.calendarDay);
+  const sort = useApp((s) => s.sort);
+  return { tasks, projects, members, scope, quick, query, projectId, memberId, calendarDay, sort };
+}
+
+export function scopeBadge(tasks: ReturnType<typeof useApp.getState>["tasks"], scope: Parameters<typeof scopeCount>[1]) {
+  return scopeCount(tasks, scope);
+}
+
+export type { Quick };

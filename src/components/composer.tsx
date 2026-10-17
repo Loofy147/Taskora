@@ -5,7 +5,7 @@ import { shiftDay } from "@/lib/format";
 import { ME, type Priority, type Status } from "@/lib/types";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { STATUS_LABEL } from "@/components/view-config";
+import { STATUS_LABEL } from "@/components/bits";
 
 export function Composer() {
   const open = useApp((s) => s.composerOpen);

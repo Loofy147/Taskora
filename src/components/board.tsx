@@ -1,8 +1,7 @@
 import { useState } from "react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Calendar, MoreHorizontal, Plus, X } from "lucide-react";
-import { AvatarStack, PriorityPill, TaskGlyph } from "@/components/bits";
-import { STATUS_LABEL } from "@/components/view-config";
+import { AvatarStack, PriorityPill, STATUS_LABEL, TaskGlyph } from "@/components/bits";
 import { SortMenu } from "@/components/shell";
 import { formatDay, isOverdue } from "@/lib/format";
 import { scopeCount, visibleTasks } from "@/lib/filters";
