@@ -1,15 +1,28 @@
 # Taskora product and engineering audit
 
 **Audit date:** 2026-10-17  
-**Evidence boundary:** uploaded `grok-workspace.zip` plus GitHub repository metadata for `Loofy147/Taskora`. The public GitHub repository was confirmed empty during this audit. No deployed runtime or production database was available to inspect.
+**Evidence boundary:** the uploaded source archive and a time-bounded GitHub verification of `Loofy147/Taskora`. Historical pre-import observations are retained below and explicitly marked as superseded where the repository has since changed. No deployed runtime or production database was available to inspect.
 
-## Findings
+## Post-import baseline verification — 2026-10-17
 
-### P0 — The application source has not yet been imported
+**Repository:** `Loofy147/Taskora`; default branch `main`; baseline commit `cf60790b9dd6340a2c699336f9233c1ee715121d`.
 
-**Status:** ESTABLISHED at the last remote read. `main` contains a temporary bootstrap commit and a staged base64 source transfer under `.taskora-import/`, but it does not yet contain the extracted application tree. The bootstrap workflow requires an authenticated GitHub Actions dispatch; the application should not be treated as present in the repository until that workflow succeeds and the temporary transport files disappear.
+- **ESTABLISHED:** `main` points to the source-population commit; the complete application tree is present at the repository root.
+- **ESTABLISHED:** `.taskora-import/` and `.github/workflows/import-taskora-source.yml` are absent from the current tree.
+- **EXPERIMENTALLY_SUPPORTED:** [GitHub Actions run 39053827997](https://github.com/Loofy147/Taskora/actions/runs/39053827997) completed successfully for that exact SHA; `npm test`, typecheck, lint, and production build all passed.
+- **KNOWN LIMITATION:** lint reported 6 warnings (five Fast Refresh export-boundary warnings and one unused variable). The client build emitted a 701.08 kB chunk (190.83 kB gzip) and a 431.89 kB chunk (135.53 kB gzip); the large-chunk warning was not suppressed or treated as a build failure. These are measurements of the pre-cleanup baseline and must be re-measured for later commits.
+- **NOT VERIFIED:** the migration runner skipped because `DATABASE_URL` was absent. No live PostgreSQL migration, deployed authentication flow, browser QA, or two-account isolation test is established by this CI run.
 
-**Required action:** authorize the repository write/Actions connection, dispatch `.github/workflows/import-taskora-source.yml`, verify the extracted root tree and imported commit, then require the normal `ci.yml` result against that source commit.
+
+## Historical findings from the initial audit
+
+The source-import finding below describes the repository state before commit `cf60790`. It is preserved as an audit trail, not as the current repository state.
+
+### Historical P0 — The application source had not yet been imported (RESOLVED)
+
+**Historical status:** this was accurate before commit `cf60790`, when the remote contained only the temporary bootstrap transport.
+
+**Resolution:** commit `cf60790` populated the source tree, removed the transport files and importer workflow, and passed the normal CI workflow on the exact source SHA. See the post-import baseline verification above.
 
 ### P1 — Task data is still local-first; the snapshot backend is an explicit bridge
 
@@ -47,11 +60,11 @@
 
 **Action applied:** added an ISO calendar-date validator, made invalid date formatting safe, ensured invalid/missing task due dates fall back to today in the store, marked the title and due-date fields as required, and added focused regression tests in `src/lib/format.test.ts`.
 
-### P2 — Full application behavior remains unverified
+### P2 — Browser and live-service behavior remain unverified
 
-**Status:** `UNKNOWN` for a full build/runtime. There are now focused Taskora regression tests for due dates, product boundaries, backup serialization, malformed imports, and reference integrity. The dependency-free suite is green, but missing installed packages prevent the TypeScript-dependent tests and full application checks from running here.
+**Status:** `UNKNOWN` for full browser interaction and live-service integration. The post-import CI run verifies automated tests, TypeScript, lint, and a production build at commit `cf60790`; it does not establish browser QA, a live PostgreSQL migration, or production authentication and isolation. Earlier local-environment limitations are recorded below.
 
-**Action applied:** added due-date and workspace-backup regression tests. The current dependency-free test group passes 224/224; this is not a substitute for the full `npm test`, typecheck, lint, build, and browser QA.
+**Action applied:** added due-date and workspace-backup regression tests. At the original local-audit stage, the dependency-free test group passed 224/224 while dependency installation was incomplete. Later, [CI run 39053827997](https://github.com/Loofy147/Taskora/actions/runs/39053827997) passed the configured `npm test`, typecheck, lint, and production build on baseline commit `cf60790`. That baseline run did not include browser QA or live-backend tests; later code revisions require their own CI evidence.
 
 ### P2 — Bundled preview screenshots show the previous brand
 
@@ -65,36 +78,36 @@
 
 **Action applied:** updated the visible wordmark and page title to Taskora, changed seeded emails to non-product placeholder addresses, and renamed package metadata to `taskora`. Kept the old local-storage key unchanged to avoid silently abandoning existing browser data; it can be migrated deliberately when the state model changes.
 
-## Verification performed on the current local workspace
+## Historical local-workspace verification (before remote CI passed)
 
 - **Passed:** `node --experimental-strip-types --test 'scripts/**/*.test.mjs'` — 224 tests passed, 0 failed.
 - **Passed:** real seeded workspace backup smoke test — 15 tasks, 6 projects, 6 members, 4 notifications validated and round-tripped.
 - **Blocked:** full `npm test` — npm registry requests failed with `EAI_AGAIN`; `@tanstack/react-start/server`, `jose`, and `date-fns` are missing from the partial `node_modules` tree. The dependent test cases cannot load, so the full command is not green.
 - **Not verified:** TypeScript check, ESLint, production build, browser interaction tests, deployment, database integration, authentication, real-time collaboration, or cross-user authorization.
 
-## Recommended delivery order
+## Recommended delivery order (updated after repository import)
 
-1. Complete authorization and run the staged importer; verify the extracted application tree and normal CI result before pushing further application changes.
+1. Keep the repository import gate complete and require CI evidence for each subsequent code revision; do not reintroduce temporary transport artifacts.
 2. Choose a real deployment target, auth strategy, database, and object storage. Preserve the current UI but label unsupported operations until wired.
 3. Implement workspaces, membership, verified identity, access-controlled task/project CRUD, comments, and activity history in the server layer; stop treating local storage as the source of truth.
 4. Add invitations, upload/download, real notifications, and email digests only after authorization and durable persistence are in place.
 5. Add integration tests covering two users in one workspace, two separate workspaces, forbidden cross-workspace reads/writes, attachment authorization, failure/retry behavior, and concurrent updates.
 6. Run browser QA at mobile and desktop sizes, then deploy and re-check the deployed build and database schema.
 
-## Revalidation addendum — 2026-10-17
+## Revalidation addendum — 2026-10-17 (historical archive-recovery record)
 
 **Exact uploaded input:** `taskora-fixed-workspace.zip`  
 **Input SHA-256:** `15a2ad903d01e9b321d02afb74ff222e9bbbd80269627deba8234cf0b8d17204`  
 **Input archive check:** `unzip -t` completed without errors; extraction contained 203 files. The archive was approximately 1.1 MB, not the 769 KB stated in the accompanying status note.
 
-**Correction applied in this revised local workspace:** the uploaded archive did not contain `.github/`, so claims that a CI workflow, Dependabot configuration, and issue templates were included were not true of the actual input. Added `.github/workflows/ci.yml`, `.github/dependabot.yml`, bug and feature issue templates, issue-template security guidance, `SECURITY.md`, and dependency-free repository-configuration regression tests. The workflow uses SHA-pinned `actions/checkout` v7.0.1 and `actions/setup-node` v7.1.0, installs from the lockfile, and runs tests, typecheck, lint, and a production build. The action versions were checked against the official [actions/checkout releases](https://github.com/actions/checkout/releases) and [actions/setup-node releases](https://github.com/actions/setup-node/releases) on 2026-10-17. The normal CI and repo hygiene configuration exist in the source bundle; the temporary importer workflow has been staged in the remote bootstrap tree, but there is no verified Actions run yet.
+**Correction applied in this revised local workspace:** the uploaded archive did not contain `.github/`, so claims that a CI workflow, Dependabot configuration, and issue templates were included were not true of the actual input. Added `.github/workflows/ci.yml`, `.github/dependabot.yml`, bug and feature issue templates, issue-template security guidance, `SECURITY.md`, and dependency-free repository-configuration regression tests. The workflow uses SHA-pinned `actions/checkout` v7.0.1 and `actions/setup-node` v7.1.0, installs from the lockfile, and runs tests, typecheck, lint, and a production build. The action versions were checked against the official [actions/checkout releases](https://github.com/actions/checkout/releases) and [actions/setup-node releases](https://github.com/actions/setup-node/releases) on 2026-10-17. The normal CI and repository-hygiene configuration were committed in the complete source import. The temporary importer workflow and base64 transport artifacts were removed by commit `cf60790`; the exact commit's CI run is verified in the post-import baseline section above.
 
-**Verification boundary:** `node --test 'scripts/**/*.test.mjs'` passed all tests in the revised workspace after the configuration additions (224/224). `npm test` as a whole is not green when dependencies are absent: the script-test phase passed, while the TypeScript-import test phase could not load `@tanstack/react-start`, `jose`, and `date-fns`. A dependency installation attempt did not complete in this environment. TypeScript, ESLint, build, browser QA, live authentication, database integration, and workspace isolation remain unverified.
+**Historical local verification boundary:** `node --test 'scripts/**/*.test.mjs'` passed all dependency-free tests in the revised workspace (224/224). The local dependency installation attempt did not complete in that environment, so the full TypeScript-import test phase could not load `@tanstack/react-start`, `jose`, and `date-fns`. This describes that local attempt only; the later remote CI run passed the complete configured test, typecheck, lint, and build stages. Browser QA and live backend integration remain unverified.
 
-**Repository status:** GitHub metadata reports `Loofy147/Taskora` is a public repository and the native connection has push permission. The initial direct Git-data tree creation returned HTTP 409 on the empty repository. A temporary bootstrap commit and 61 base64 transport chunks were then staged on `main`, along with an importer workflow. The current remote is therefore not empty, but it still does not contain the extracted application source. The workflow has not run, so publication is not complete. The revised local workspace remains the canonical complete source until the remote import and post-import checks succeed.
+**Historical bootstrap note — superseded:** the original direct tree creation failed against an empty repository, so a temporary bootstrap and 61 transport chunks were staged. That temporary arrangement was only an intermediate import technique. It was superseded by commit `cf60790`, which published the complete source tree and removed the transport and importer workflow.
 
 
-## Implementation revalidation — workspace recovery
+## Implementation revalidation — workspace recovery (historical local-workspace record)
 
 **Date:** 2026-10-17  
 **Status:** `EXPERIMENTALLY_SUPPORTED` for the dependency-free validation module; UI/typecheck/browser behavior remains `UNKNOWN` until the complete dependency install and browser QA run.
@@ -108,17 +121,16 @@ Implemented in the local source workspace:
 - `formatStamp` now returns `Unknown date` instead of throwing on malformed persisted timestamps.
 - `scripts/workspace-backup.test.mjs` covers valid round trips, malformed JSON, foreign format, unknown versions, impossible dates, duplicate IDs, missing relationships, the required local profile, the size limit, and malformed settings.
 
-**Verification run:** `node --experimental-strip-types --test 'scripts/**/*.test.mjs'` — **224 tests passed, 0 failed**. An isolated strict TypeScript check passed for `workspace-backup.ts` and the domain types; this is not the whole-app typecheck. The real seeded dataset was also passed through the backup generator and parser in a smoke test: 15 tasks, 6 projects, 6 members, 4 notifications, 18,902 bytes; validated successfully. The full `npm test` command still fails its TypeScript-import phase because `npm ci` did not complete and required packages (`@tanstack/react-start`, `jose`, and `date-fns`) are missing from `node_modules`. TypeScript, lint, build, and browser QA are therefore not claimed as passing.
+**Verification run:** `node --experimental-strip-types --test 'scripts/**/*.test.mjs'` — **224 tests passed, 0 failed**. An isolated strict TypeScript check passed for `workspace-backup.ts` and the domain types; this is not the whole-app typecheck. The real seeded dataset was also passed through the backup generator and parser in a smoke test: 15 tasks, 6 projects, 6 members, 4 notifications, 18,902 bytes; validated successfully. The historical local attempt could not complete TypeScript-import tests because `npm ci` did not complete and `@tanstack/react-start`, `jose`, and `date-fns` were absent in that environment. Later remote CI at commit `cf60790` passed the configured tests, typecheck, lint, and production build. Browser QA and live backend integration remain open.
 
 This reduces prototype data-loss risk but does **not** change the architecture boundary: the app remains browser-local, unauthenticated by default, and unsuitable for shared sensitive business records until server-side authentication, workspace authorization, and PostgreSQL persistence are implemented and tested.
 
 
-## Next implementation frontier — 2026-10-17
+## Next implementation frontier — after repository hygiene
 
-1. **Finish repository import before changing remote application code.** The current remote main branch is a bootstrap only; the full application tree and CI result must be verified first.
-2. **Provision auth + persistent PostgreSQL before exposing the sync UI to customers.** The UI fails safe while auth is disabled; do not change the app environment to enable it without real session configuration.
-3. **Add browser and database integration tests:** initial upload is create-once, restore is explicit, concurrent writes return conflict rather than last-write-wins, signed-out access is denied, and user A cannot read/write user B's snapshot.
-4. **Replace whole-state sync with domain CRUD in phases:** `workspaces/memberships` first, then tasks/projects, then comments/subtasks/attachments metadata and audit/activity events. Keep existing Zustand UI behind a repository/service interface to lower migration risk.
-5. **Team workspaces and invitations:** use pending, expiring, single-use invitation tokens stored as hashes; enforce role capability checks server-side on every mutation. Do not claim current sample team members are actual accounts.
-6. **File storage and notifications:** use private object storage with short-lived signed upload/download URLs and membership checks; implement actual notification records and a queued email provider before exposing upload/digest controls.
-7. **Production readiness:** add event retention/partitioning strategy, DB backup + point-in-time recovery, audit log retention, rate limits and payload-size limits; test migrations from a fresh DB and an existing DB; add browser QA after dependency install.
+1. **Authenticated PostgreSQL gate:** provision real deployment authentication and a durable `DATABASE_URL` through the platform secret store, then apply the migration in a controlled staging database.
+2. **Integration evidence:** exercise snapshot create/upload, load after reload, explicit restore, stale-revision conflict, database failure, sign-out and reauthentication. Test two independent accounts and prove cross-account read/write isolation.
+3. **Domain model:** evolve the personal snapshot bridge into authorized per-entity operations for workspaces/memberships, tasks/projects, and then comments/subtasks/attachments metadata.
+4. **Operational readiness:** add browser QA, database backup and restore drills, retention rules, rate limiting, structured redacted logs, and deploy/rollback checks before calling the product production-ready.
+
+Do not enable cloud sync in a customer deployment until the auth/database, concurrency, restore, failure-recovery, and two-account isolation gates pass.
