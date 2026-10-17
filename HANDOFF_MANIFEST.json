@@ -1,0 +1,1157 @@
+{
+  "name": "Taskora complete source handoff",
+  "created_date": "2026-10-17",
+  "archive_layout": "Project root is the archive root; there is no wrapper directory.",
+  "merged_source_snapshots": [
+    "taskora-complete-workspace.zip",
+    "taskora-high-quality-workspace.zip",
+    "taskora-updated-workspace.zip",
+    "taskora-fixed-workspace.zip",
+    "taskora-repository-source.zip"
+  ],
+  "merge_policy": "Used taskora-high-quality-workspace as the broad asset/reference base and overlaid taskora-complete-workspace where paths conflicted. Every unique file from the other available source snapshots is represented in the merged tree.",
+  "file_count_excluding_manifest_files": 225,
+  "bytes_excluding_manifest_files": 2266312,
+  "checks": {
+    "dependency_free_regression_suite": {
+      "status": "PASS",
+      "passed": 224,
+      "failed": 0,
+      "runtime": "Node.js v22.16.0"
+    },
+    "archive_integrity": "The final ZIP will be checked with unzip -t; its SHA-256 is provided in the adjacent sidecar file.",
+    "full_application_test_suite": "NOT VERIFIED: dependency installation was incomplete in the last full-app attempt.",
+    "project_typecheck": "NOT VERIFIED",
+    "lint": "NOT VERIFIED",
+    "production_build": "NOT VERIFIED",
+    "browser_qa_and_deployed_database_integration": "NOT VERIFIED"
+  },
+  "deployment_boundary": "The bundled .grok/app-env.json disables auth and database provisioning. Do not enable cloud sync before real authentication and workspace authorization have been verified.",
+  "file_hashes": [
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.md",
+      "bytes": 554,
+      "sha256": "b4ebd7c4898895f7803ae22c9ff5d956ccf229d44e167b46196309c347cdd7cf"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/config.yml",
+      "bytes": 339,
+      "sha256": "e67eac4c87ae8ee085a0dc501f43f0311a7858fb2867a1c68822d5a8bd1f0372"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/feature_request.md",
+      "bytes": 510,
+      "sha256": "4e6bca4f875e40e4da8260109690a72c6a94a0f2b2a049e75624b1e3d14a4260"
+    },
+    {
+      "path": ".github/dependabot.yml",
+      "bytes": 258,
+      "sha256": "ee8dde56a537f3d29bf2a87b719c2c7c38403b002d32453635f66915220e71c2"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "bytes": 941,
+      "sha256": "89beeebea91e0b77dbcf55d5105a600d9ca979a763c65219c5bf8b5b445162ca"
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 320,
+      "sha256": "b2667ffedd303fdf7d389fd02fd7f332f7fee2a58ec549397bc63e7db61c69ed"
+    },
+    {
+      "path": ".grok/app-env.json",
+      "bytes": 76,
+      "sha256": "62dea7bb1344fbbdca7057eea06791c27b1488f25203d25bcfd8035c44280151"
+    },
+    {
+      "path": ".grok/references/browser-qa.md",
+      "bytes": 9097,
+      "sha256": "5299e34aa070cd6877d2217df6fe4fa3f7a7db94df03c41ac1402b540b289150"
+    },
+    {
+      "path": ".grok/references/data-and-auth.md",
+      "bytes": 5614,
+      "sha256": "1e8373c5e00108ff8b84014040f5c66d80aa2668f8660139356869c55706ba7a"
+    },
+    {
+      "path": ".grok/references/deploy-target.md",
+      "bytes": 2435,
+      "sha256": "ff612fd0ac29e2d2e8c7ac2864ee92549086baf34fb741fcabfd7de841eebdc8"
+    },
+    {
+      "path": ".grok/references/generated-art.md",
+      "bytes": 3854,
+      "sha256": "7485ecf0311612b97c0e3c24fbfac6bd118b1c82429a3ed2f272214fe6a6d994"
+    },
+    {
+      "path": ".grok/references/hibernate-revive.md",
+      "bytes": 1796,
+      "sha256": "12125da78e1932bfbfc29edec96d2c0790f535e6a093d1207fc1da559dd04cc3"
+    },
+    {
+      "path": ".grok/references/scaffold.md",
+      "bytes": 2392,
+      "sha256": "d27932d3939f9a2fc3f2477d9be032d5361c63a407d873676b15ba9e66e1a7df"
+    },
+    {
+      "path": ".grok/skills/auth/SKILL.md",
+      "bytes": 6345,
+      "sha256": "887ef562db59f644f4353e69aa8cb22a1c212488840a8c274f73c36e97cbbfad"
+    },
+    {
+      "path": ".grok/skills/auth/references/grok-identity.md",
+      "bytes": 3746,
+      "sha256": "f6e944c2b028690382d7fb1d66d34ede55bd5f92257d17f33d48f70e56d92188"
+    },
+    {
+      "path": ".grok/skills/auth/references/per-user-data.md",
+      "bytes": 2402,
+      "sha256": "8538db1b761d2dce033e751eb7513e5d1012998b9d7599f8d1725e3b90830298"
+    },
+    {
+      "path": ".grok/skills/auth/references/prewired-and-env.md",
+      "bytes": 3392,
+      "sha256": "de580b328cc403f6b6d5638764c8f42fa6f17d461969f95eaed913c0a6ddabe5"
+    },
+    {
+      "path": ".grok/skills/auth/references/session-ui.md",
+      "bytes": 6437,
+      "sha256": "326773404dd10a2ff0ba9bfa02045852175007f9e8e52c68d47f45532bc532fe"
+    },
+    {
+      "path": ".grok/skills/auth/references/sign-in-methods.md",
+      "bytes": 2892,
+      "sha256": "f768048704e997511b46d9f8162bad5bf3faf749977f5fb014c9325e738c0277"
+    },
+    {
+      "path": ".grok/skills/auth/references/wiring.md",
+      "bytes": 2627,
+      "sha256": "75d840d1eedb9ce17fbb3ffd10a09ac9ac90a469f9f185338b14b8079fbb407c"
+    },
+    {
+      "path": ".grok/skills/building-games/SKILL.md",
+      "bytes": 12235,
+      "sha256": "527814d9d39d29b7a291cb696eceb6a121b9923e833876bf888916a6a29771d1"
+    },
+    {
+      "path": ".grok/skills/building-games/references/3d-libs.md",
+      "bytes": 3092,
+      "sha256": "db472820a65a16e4928a68a50fd31885b945ec2f9fa45a17a8152a0d48cf12bf"
+    },
+    {
+      "path": ".grok/skills/building-games/references/ai-pathfinding.md",
+      "bytes": 9974,
+      "sha256": "e815831ca67d68e4bc7a649f63ae129abdd3d996040b2c446c2c574e72c8424b"
+    },
+    {
+      "path": ".grok/skills/building-games/references/audio.md",
+      "bytes": 9423,
+      "sha256": "1de8c85a9fd6cb9594e11b6b1da7e54cdca8de512c0778eb35959f8f0fbe210c"
+    },
+    {
+      "path": ".grok/skills/building-games/references/babylon.md",
+      "bytes": 16504,
+      "sha256": "065934f53c6c8a1d5fd27a98f1311df2b4f2f194eb694355a98cc3c802a3ebd6"
+    },
+    {
+      "path": ".grok/skills/building-games/references/collision-physics.md",
+      "bytes": 10990,
+      "sha256": "af213fa9079d38742fc4d95a9c6a34907b85fb039e6c8cdb058dcbf5c7bd8672"
+    },
+    {
+      "path": ".grok/skills/building-games/references/ecs-architecture.md",
+      "bytes": 9185,
+      "sha256": "6b0de85d73be9725c3989136c968b85ceec70c333cc0ef9993e58aff0f1b0d5f"
+    },
+    {
+      "path": ".grok/skills/building-games/references/game-feel-juice.md",
+      "bytes": 10693,
+      "sha256": "24742ba2d5455f10c85c06ae279c636921f983a696b844a7f2505b988a5bef83"
+    },
+    {
+      "path": ".grok/skills/building-games/references/genres/board-card-chess.md",
+      "bytes": 8859,
+      "sha256": "c2103f928e917c02729f00696165426ba106d9f235948347147d73ac53a50d65"
+    },
+    {
+      "path": ".grok/skills/building-games/references/genres/endless-runner.md",
+      "bytes": 6912,
+      "sha256": "2c0026ab6e57f6b025fbe3673aab24f7dff0fb70fb89f1b047486f1346049a54"
+    },
+    {
+      "path": ".grok/skills/building-games/references/genres/fps.md",
+      "bytes": 10039,
+      "sha256": "a3df7b29b964c3850e01d10fd4df131d3488f9064acac49ddc34386ec13d1ca2"
+    },
+    {
+      "path": ".grok/skills/building-games/references/genres/platformer-2d.md",
+      "bytes": 8785,
+      "sha256": "2262c7c914409746971a9b1eef445b026011260ddb5a39af2f3904fc44ef8104"
+    },
+    {
+      "path": ".grok/skills/building-games/references/genres/puzzle-match3-tetris.md",
+      "bytes": 10324,
+      "sha256": "1011844cbe7d65184ecbc541ad0f3060b04ee22197d6b6bc22fa671b2329ed47"
+    },
+    {
+      "path": ".grok/skills/building-games/references/genres/racing-kart.md",
+      "bytes": 9169,
+      "sha256": "2afc99aadd556321973c8ae3ef2f8270dd5bb7bb8ad896abcac27c9a7221e0ff"
+    },
+    {
+      "path": ".grok/skills/building-games/references/genres/topdown-twin-stick.md",
+      "bytes": 7517,
+      "sha256": "f1dfeca4990b1fc37a49ca82f1246f5564a4fae24dfc3ac8b1d01f95aab43da6"
+    },
+    {
+      "path": ".grok/skills/building-games/references/genres/tower-defense.md",
+      "bytes": 7411,
+      "sha256": "a52c28421da0d3710c21fa19421a172b0bc75add64b5dee35abd3b8299add76a"
+    },
+    {
+      "path": ".grok/skills/building-games/references/genres/voxel-minecraft.md",
+      "bytes": 8658,
+      "sha256": "cdd5746e5496945694fd8e8d0fed9cf0314d4fae6dc107cfdf44a0824fdebdc6"
+    },
+    {
+      "path": ".grok/skills/building-games/references/input.md",
+      "bytes": 10311,
+      "sha256": "00e030e3a28118bfc9d2f6a633b9d56cc31f60d015181b668dcd09914d15f8ce"
+    },
+    {
+      "path": ".grok/skills/building-games/references/phaser.md",
+      "bytes": 19739,
+      "sha256": "08abc9cb20cfe356e3376f216aef6a62df72e654f542c7770ab69f2cdfc17b2a"
+    },
+    {
+      "path": ".grok/skills/building-games/references/procedural-generation.md",
+      "bytes": 10441,
+      "sha256": "f03bd0390726bc7f823ad15f9309aef5317aa7f27fb7611e6648ec3fa0ca7ace"
+    },
+    {
+      "path": ".grok/skills/building-games/references/save-persistence.md",
+      "bytes": 9041,
+      "sha256": "6751d65f6b0dc76e19be0827286a1753efc8161a3f66a080c8e23999ef5063a4"
+    },
+    {
+      "path": ".grok/skills/building-games/references/threejs-foundational.md",
+      "bytes": 14380,
+      "sha256": "90f75bc167ae9b4e4e980689ad5fdd81ccfc5efef457cdec01234dccd0b8dd8e"
+    },
+    {
+      "path": ".grok/skills/controls/SKILL.md",
+      "bytes": 11509,
+      "sha256": "85b80f2812d0d141e97dbb294c3678c3192fd051651e9460ed6ca6317d717141"
+    },
+    {
+      "path": ".grok/skills/design-ui/SKILL.md",
+      "bytes": 5995,
+      "sha256": "5ac56024db2287e485d03e208423fad29909d3b323647c5568243bfa96f42acf"
+    },
+    {
+      "path": ".grok/skills/design-ui/references/animations.md",
+      "bytes": 11106,
+      "sha256": "33e01727f60c34872f3f0a52c92513f9af1681449ebaa35b51123127c31bf51f"
+    },
+    {
+      "path": ".grok/skills/design-ui/references/performance.md",
+      "bytes": 2884,
+      "sha256": "f4537590cca884143b8e628123810286b4bfef29b9283f900265190bd3d8bd5e"
+    },
+    {
+      "path": ".grok/skills/design-ui/references/refined-ui.md",
+      "bytes": 20469,
+      "sha256": "9abf1b1e34632f0788fec8f49a8ade216a72aab06f6cf18528b6c502c7f5a56d"
+    },
+    {
+      "path": ".grok/skills/design-ui/references/surfaces.md",
+      "bytes": 6586,
+      "sha256": "c2eac605c207ba67b2e3bf6a3918f293a6fe02ce8c72c630a51faceb321b445d"
+    },
+    {
+      "path": ".grok/skills/design-ui/references/typography.md",
+      "bytes": 3180,
+      "sha256": "b91125ab0edf02a7f582bae434ae957af2f6729e7be038304bb2d0c983697eb8"
+    },
+    {
+      "path": ".grok/skills/game-animation-frames/SKILL.md",
+      "bytes": 4386,
+      "sha256": "3840f8166d8784d672531fee4c25b618867820e97ff4faf17135f26399e0e097"
+    },
+    {
+      "path": ".grok/skills/game-asset-core/SKILL.md",
+      "bytes": 3858,
+      "sha256": "690bb8a77495bc12c2e95b60d907a1529de87b5f65856281bb67bc67839c4cfc"
+    },
+    {
+      "path": ".grok/skills/game-character-consistency/SKILL.md",
+      "bytes": 2795,
+      "sha256": "5fc49d9364193607cf3bca8f1884a43ccd4d3cbe63df69ef67b9b53346881afd"
+    },
+    {
+      "path": ".grok/skills/game-tilesets/SKILL.md",
+      "bytes": 3028,
+      "sha256": "38eb784765e1b5adaee3cca138978be12f968521a80e14f3c83e096b6308e10b"
+    },
+    {
+      "path": ".grok/skills/game-ui-icons/SKILL.md",
+      "bytes": 2274,
+      "sha256": "18fd7d9a86bbba018c2eb05ffbad99bda9a8d876d7f61a80de6e6f7771771028"
+    },
+    {
+      "path": ".grok/skills/generate2dmap/LICENSE",
+      "bytes": 1065,
+      "sha256": "d63ddc781bf0d15753fe0ba22c7cd5828dabb7776465ea4d4939558d4909b0fa"
+    },
+    {
+      "path": ".grok/skills/generate2dmap/SKILL.md",
+      "bytes": 7738,
+      "sha256": "992eeaa76ce3c06220e58867c9ff7554117c4af703539d7796f048e22b868f17"
+    },
+    {
+      "path": ".grok/skills/generate2dmap/SOURCE.md",
+      "bytes": 303,
+      "sha256": "a3667d46be6cda6ec841c482ca371b9bae081445bc9fb15e08e5ef5e22386d31"
+    },
+    {
+      "path": ".grok/skills/generate2dmap/references/deliverables.md",
+      "bytes": 7345,
+      "sha256": "0513bc2e2b406142f1cab3139e861c1a69de6865b686bde7e7499ba53afc7630"
+    },
+    {
+      "path": ".grok/skills/generate2dmap/references/layered-map-contract.md",
+      "bytes": 8102,
+      "sha256": "0af8127a5188d9d09fcf9913cf2804c5e40eb6b2be422c48d356d22c649b10a2"
+    },
+    {
+      "path": ".grok/skills/generate2dmap/references/map-strategies.md",
+      "bytes": 26755,
+      "sha256": "91659c967efd0edde10ca3bd1cc136b17b7820c0da7279078d5020827935095d"
+    },
+    {
+      "path": ".grok/skills/generate2dmap/references/object-production-gate.md",
+      "bytes": 3192,
+      "sha256": "f26eddd69b5561b6cae7945222e9212f5bf6e534fda427f48a58746238ac8bb8"
+    },
+    {
+      "path": ".grok/skills/generate2dmap/references/pipeline.md",
+      "bytes": 16554,
+      "sha256": "e227cdc348607228f3474fe4ea1d533d65e377dd17e36a8ca61e4708fabc37c0"
+    },
+    {
+      "path": ".grok/skills/generate2dmap/references/prop-pack-contract.md",
+      "bytes": 9458,
+      "sha256": "93be2245aa4f3ff9e591127a7318f34843b6458a85d7c614ca024500d30107f9"
+    },
+    {
+      "path": ".grok/skills/generate2dmap/references/side-scroll-stages.md",
+      "bytes": 5627,
+      "sha256": "0926d20385024052bab2044645f49657552d0bb2f259aa1958a809e3332275b0"
+    },
+    {
+      "path": ".grok/skills/generate2dmap/scripts/compose_layered_preview.py",
+      "bytes": 5256,
+      "sha256": "29d256385961475de142d2701231a9e67c369e5270c193a66df3c51b6c888855"
+    },
+    {
+      "path": ".grok/skills/generate2dmap/scripts/extract_prop_pack.py",
+      "bytes": 13050,
+      "sha256": "c02a2726497e6771e0a5a1e5105591ce98b9f161b8f6a36e04863bf7592f8e36"
+    },
+    {
+      "path": ".grok/skills/generate2dsprite/LICENSE",
+      "bytes": 1065,
+      "sha256": "d63ddc781bf0d15753fe0ba22c7cd5828dabb7776465ea4d4939558d4909b0fa"
+    },
+    {
+      "path": ".grok/skills/generate2dsprite/SKILL.md",
+      "bytes": 21260,
+      "sha256": "d620ac32acdb5946a41e41269aefab0b295e8038df57c2e89ce3749415e896e6"
+    },
+    {
+      "path": ".grok/skills/generate2dsprite/SOURCE.md",
+      "bytes": 303,
+      "sha256": "a3667d46be6cda6ec841c482ca371b9bae081445bc9fb15e08e5ef5e22386d31"
+    },
+    {
+      "path": ".grok/skills/generate2dsprite/references/modes.md",
+      "bytes": 5799,
+      "sha256": "88b75203732cf1e04af8d98427c2ddef617b7bbc1a844841d75efdf4c1359a39"
+    },
+    {
+      "path": ".grok/skills/generate2dsprite/references/prompt-rules.md",
+      "bytes": 11603,
+      "sha256": "6a82348083283a29d86c934a280b0bb80c40f926a1e08582050f6dd9068041f3"
+    },
+    {
+      "path": ".grok/skills/generate2dsprite/scripts/generate2dsprite.py",
+      "bytes": 42687,
+      "sha256": "681d0885d1813e9d7e1a82dfd340c1c71c8158e57a4c0710516c3f6c2c944a95"
+    },
+    {
+      "path": ".grok/skills/generate2dsprite/scripts/make_layout_guide.py",
+      "bytes": 3590,
+      "sha256": "a1a91b069e998d304b8c37f14ec33c139f50252b5fb04574f4c997d268ec6b58"
+    },
+    {
+      "path": ".grok/skills/imagine-grok-build/SKILL.md",
+      "bytes": 12394,
+      "sha256": "cae327513b9cfbf1c6c1136533dbf80dddc7493a0e34b57572b84fdc6ff9ef44"
+    },
+    {
+      "path": ".grok/skills/multiplayer-p2p/SKILL.md",
+      "bytes": 5067,
+      "sha256": "234ee1648566f808315295b5e5b6bc6b6e2933a183ac1a584dcd243d792a4bf5"
+    },
+    {
+      "path": ".grok/skills/multiplayer-p2p/references/react-binding.md",
+      "bytes": 4831,
+      "sha256": "77391d4a47f519889386895af34f2c101a089616caddbc47ba0134f068a734c9"
+    },
+    {
+      "path": ".grok/skills/multiplayer-p2p/references/signaling-relay.md",
+      "bytes": 9150,
+      "sha256": "4277bb2f17e208a3d5afe72ef965788876a2935379175a9b0eb20dc2c898766f"
+    },
+    {
+      "path": ".grok/skills/neon/SKILL.md",
+      "bytes": 7445,
+      "sha256": "87e0fe9b647986787e281930788e1dc110ccb19df4e29854f20f4604c1ae6897"
+    },
+    {
+      "path": ".grok/skills/og/SKILL.md",
+      "bytes": 6555,
+      "sha256": "5c6ff71e42840f38db61fb5173836485de4a53418c99d1f34d77ecefaed46d28"
+    },
+    {
+      "path": ".grok/skills/og/references/brand-pass.md",
+      "bytes": 2568,
+      "sha256": "68019a3afe8ae75b94599de354245c9a0d068cae5ff054841ac75cc055058afe"
+    },
+    {
+      "path": ".grok/skills/og/references/custom-card.md",
+      "bytes": 5988,
+      "sha256": "97c0efccce4daf47486f8caa65723db2fd0435ccaa68be90004a6c1ad15cb954"
+    },
+    {
+      "path": ".grok/skills/og/references/favicon-and-icons.md",
+      "bytes": 1959,
+      "sha256": "bc95ed577825a411571f4680f992799a26811dd72af6714375dc49800e216db6"
+    },
+    {
+      "path": ".grok/skills/og/references/og-type-contract.md",
+      "bytes": 1749,
+      "sha256": "2743a8a9a6c1eafb8aec5ae8c83f2202533df6a55649582684d2bce18a52ea2f"
+    },
+    {
+      "path": ".grok/skills/og/references/placeholder-card.md",
+      "bytes": 887,
+      "sha256": "c21551f098562c8ff49004885596f71848c09af13b19237f1babe820e4f7e957"
+    },
+    {
+      "path": ".grok/skills/og/references/x-banner.md",
+      "bytes": 2339,
+      "sha256": "0f6f5b8c381c40e26514439575a004ef0560b379fd069b76fc940c9f803e0733"
+    },
+    {
+      "path": ".grok/skills/threejs/SKILL.md",
+      "bytes": 3021,
+      "sha256": "0fadfe66cf788bce9bcef87a3bc8d6c65e5b6275976b7bee1a914a0d05d6ecc6"
+    },
+    {
+      "path": ".grok/skills/threejs/references/llms-full.txt",
+      "bytes": 132250,
+      "sha256": "e93ae843c05b2f936efaaa5946d506ca70a7cc15fa2f7adf79f9d4c70659b2cc"
+    },
+    {
+      "path": ".grok/skills/video2dsprite/LICENSE",
+      "bytes": 1065,
+      "sha256": "d63ddc781bf0d15753fe0ba22c7cd5828dabb7776465ea4d4939558d4909b0fa"
+    },
+    {
+      "path": ".grok/skills/video2dsprite/SKILL.md",
+      "bytes": 10058,
+      "sha256": "09062be6facd6d35373777eb464c32be7e1272030e0b5f1f66b5100e7b3e6f14"
+    },
+    {
+      "path": ".grok/skills/video2dsprite/SOURCE.md",
+      "bytes": 303,
+      "sha256": "a3667d46be6cda6ec841c482ca371b9bae081445bc9fb15e08e5ef5e22386d31"
+    },
+    {
+      "path": ".grok/skills/video2dsprite/references/pipeline.md",
+      "bytes": 2544,
+      "sha256": "d8dcafb959b92c88c754bb784d8da047e4537bde1679875da2ce73463bbe43d0"
+    },
+    {
+      "path": ".grok/skills/video2dsprite/references/prompt-rules.md",
+      "bytes": 2482,
+      "sha256": "b1bee1a50932dc4bb26f499027d4534f556c8ef99c6744877cddc9321d8e2783"
+    },
+    {
+      "path": ".grok/skills/video2dsprite/scripts/video2dsprite.py",
+      "bytes": 16164,
+      "sha256": "5a580ace4b07ef66d3069ad7fca80f744655e9ba17bdea82dfe2717bd4dfedea"
+    },
+    {
+      "path": ".grok/skills/xai-api/SKILL.md",
+      "bytes": 6618,
+      "sha256": "a8f9bb7468305e3ec6377f74a9e5ecc4b0b4a1334596350087b8c32cc9cb45a5"
+    },
+    {
+      "path": ".prettierrc",
+      "bytes": 90,
+      "sha256": "d5f90f76c5b68ce7be5ba077813f97e1983511b8c314764537345a538c1261f4"
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 19005,
+      "sha256": "5697d2fefb9bf4dbe5551ac39203e4826547659198a6e80e1041d42b8fc53c8a"
+    },
+    {
+      "path": "HANDOFF_PACKAGE.md",
+      "bytes": 2336,
+      "sha256": "2c43c6a54b4e13fbdb00a1b1ec8dcfd322baca09746954bbe598ace2294ae690"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4078,
+      "sha256": "9f67f926743e9e1b9fdc6b8c874052a381d527bff53db217f463c2c13f6097e2"
+    },
+    {
+      "path": "SECURITY.md",
+      "bytes": 1084,
+      "sha256": "1353fe00f77b90536a4d7b45e8b88777689f0fbeb0051b9932d5239f1bc291d0"
+    },
+    {
+      "path": "attachments/1000048317.png",
+      "bytes": 152212,
+      "sha256": "5c9af0063086af1d38626c81fdd1396d0191e9f9a0f75d01fa82a42ac211123f"
+    },
+    {
+      "path": "docs/IMPLEMENTATION_ROADMAP.md",
+      "bytes": 10253,
+      "sha256": "568e09516ba2e51dc31c87f8c0cbeba40541a2d265c3feef4c8c8bef76311c3f"
+    },
+    {
+      "path": "docs/PRODUCT_AUDIT.md",
+      "bytes": 15866,
+      "sha256": "eab39c611e9e973d2cfef8091a8fbf066f69bd083736d51e4f43452f02dd0f13"
+    },
+    {
+      "path": "docs/REPOSITORY_IMPORT.md",
+      "bytes": 3369,
+      "sha256": "2aa947d5e25ac7e26da29f20b08f79a6d3aa168d5edc3f944519df858e3d5939"
+    },
+    {
+      "path": "docs/WORKSPACE_BACKUP_FORMAT.md",
+      "bytes": 2158,
+      "sha256": "da03cb09ac0220da3de662bed4114f7d598eaf83f97a8ac5a86d6a282fe674ac"
+    },
+    {
+      "path": "eslint.config.mjs",
+      "bytes": 1277,
+      "sha256": "9c79df07c33ff6aa13876bdd1e7e6652aa1ecb377c7b7f029f7915d215ee4488"
+    },
+    {
+      "path": "migrations/0001_workspace_storage.sql",
+      "bytes": 2287,
+      "sha256": "82f58b3c0a6af8e6ccf3148acabd8953afbf3c2d0dcf8545d8bdc866255b1bbf"
+    },
+    {
+      "path": "migrations/auth/0001_auth.sql",
+      "bytes": 2739,
+      "sha256": "f953cacc448c0c81ae4fe63e66b0e59569e840782ad279fdee201dff529363e9"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 265327,
+      "sha256": "da119f3ab6b5c75b688d7bae84a500ae3d1bab5033a885204b349d827bcf732e"
+    },
+    {
+      "path": "package.json",
+      "bytes": 3625,
+      "sha256": "98487b717fa9d29b1f91b94dcff2a914381c81be1e79dc086c59ff03651f072a"
+    },
+    {
+      "path": "public/__grok/icon-180.png",
+      "bytes": 2100,
+      "sha256": "3cf5d17d294b51c6cca6c86070309b88554b7ad702b0412e8e2709a01990bc8a"
+    },
+    {
+      "path": "public/__grok/install/assets/homescreen/glass-puzzle.svg",
+      "bytes": 1811,
+      "sha256": "a677c9356c23d1e699559ddbffac97cd135c2782cd893fb34f3738f6d11bee17"
+    },
+    {
+      "path": "public/__grok/install/assets/homescreen/glass-share.svg",
+      "bytes": 2388,
+      "sha256": "efad1b4b507a68c1f1af4aad2c93e8c24076224aa593da86677697f543d026d6"
+    },
+    {
+      "path": "public/__grok/install/assets/homescreen/logo-grok.svg",
+      "bytes": 1059,
+      "sha256": "0654e3e59cce69856f38525cbfe4ab3a9ef52d4b64c8532dd0bc1a3f34fcb5b1"
+    },
+    {
+      "path": "public/__grok/install/assets/homescreen/ob-ipad.png",
+      "bytes": 101843,
+      "sha256": "4c9b09a4660c662b394597d551a04124293b0e37a7a7c72271dd2948c4499a14"
+    },
+    {
+      "path": "public/__grok/install/assets/homescreen/ob-phone.png",
+      "bytes": 103612,
+      "sha256": "80e0a5ede614d9b920c67d7cb79c80a79134687b1fc9f560384e896a88e302db"
+    },
+    {
+      "path": "public/__grok/install/assets/homescreen/plus.svg",
+      "bytes": 2401,
+      "sha256": "c2c94be46aa2c3c2fda95d7c6f2fc6d0b656d1f5847828d5d95b5a81a6f4f20d"
+    },
+    {
+      "path": "public/__grok/install/styles.css",
+      "bytes": 6717,
+      "sha256": "7e8e881302f58e54a9c07e7be395692d3de20fdaa27ce358531cc8dcca472cb6"
+    },
+    {
+      "path": "public/favicon.svg",
+      "bytes": 253,
+      "sha256": "9d9331281bcb753d2c590fc75b135e278f1927d52b3821443ef2222e4ce5ac2a"
+    },
+    {
+      "path": "screenshots/.gitkeep",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "screenshots/app-builder-preview-mobile.png",
+      "bytes": 54793,
+      "sha256": "7550de309059a4ee2359ae35b36ab1205ca40718c2905d5fbd64482c5f2572b9"
+    },
+    {
+      "path": "screenshots/app-builder-preview.json",
+      "bytes": 1635,
+      "sha256": "28a2bf5fecfbc551fd1b7a527d87c2412ce14a641763191b2336e946facba516"
+    },
+    {
+      "path": "screenshots/app-builder-preview.png",
+      "bytes": 146620,
+      "sha256": "b05e7ee40a713c7a9b97838c749d0d0c4e32c91c6f76491e563cad1527eec73f"
+    },
+    {
+      "path": "scripts/app-env-plugin.mjs",
+      "bytes": 1278,
+      "sha256": "92962d2361a98413c0cef80b31266d49b063cf4ecf6421bb99f57f6eef4ed7b6"
+    },
+    {
+      "path": "scripts/brand-check.mjs",
+      "bytes": 9609,
+      "sha256": "318f33ce7b29b55c386cc8847084068777880f795a5082043229bb06686be035"
+    },
+    {
+      "path": "scripts/brand-check.test.mjs",
+      "bytes": 15084,
+      "sha256": "3dada9e907cf63d4127588268f38987e72108639e65a2694aebf4ee35aa9f309"
+    },
+    {
+      "path": "scripts/browser-guard.mjs",
+      "bytes": 1724,
+      "sha256": "c6fb865defe5a37bd94e3805b00311d4e8267daf92812e39f62b1213d947265e"
+    },
+    {
+      "path": "scripts/browser-smoke-verdict.mjs",
+      "bytes": 4663,
+      "sha256": "5699614f7fa62515e25ba9cca6397db2770cf6feb9b973f3c19f2915874c53de"
+    },
+    {
+      "path": "scripts/browser-smoke-verdict.test.mjs",
+      "bytes": 15643,
+      "sha256": "48b3924b41d606f94a9b8faae47ff350b84978fdd5ab3f6ca01640ed4c7087d7"
+    },
+    {
+      "path": "scripts/browser-smoke.mjs",
+      "bytes": 6042,
+      "sha256": "2e1cc3136f33bd74b73b4b3dba812e74ac299c24893b9a7c406e9bbeaf46571f"
+    },
+    {
+      "path": "scripts/check-auth-invariant.mjs",
+      "bytes": 4203,
+      "sha256": "d712203c4bc92c197c342e5c91660fc5a141a31171f22f35c505a0bff45f98ee"
+    },
+    {
+      "path": "scripts/check-auth-invariant.test.mjs",
+      "bytes": 4218,
+      "sha256": "75a58f44dffb2fc77eb47473638646f607dba26a68a6900156031c7b6227cf3c"
+    },
+    {
+      "path": "scripts/grok-pwa-plugin.mjs",
+      "bytes": 6615,
+      "sha256": "36331d0bc0664debb5068bd6869d3089dc41555b7770c9ccb577d8845958835c"
+    },
+    {
+      "path": "scripts/grok-pwa-plugin.test.mjs",
+      "bytes": 21850,
+      "sha256": "816c6b867c7230d739f69598202c0903e4332632293d548bde74c8d875ed8e5c"
+    },
+    {
+      "path": "scripts/grok-pwa-shared.d.mts",
+      "bytes": 3206,
+      "sha256": "f4db33fcf35ef3f25fca05d1b42494b6f607c44a4d728ed3e989e65a3a1ea9d0"
+    },
+    {
+      "path": "scripts/grok-pwa-shared.mjs",
+      "bytes": 18225,
+      "sha256": "99bf3caab5e4c2a30fe748a196cfa4074a9e039efec16f57c83efe325bcadd9e"
+    },
+    {
+      "path": "scripts/install-page.html",
+      "bytes": 5658,
+      "sha256": "5f8fe91f837db8d74d68db5e057948918bd9299e097700e0bd18f1cf5f94e586"
+    },
+    {
+      "path": "scripts/migrate.mjs",
+      "bytes": 3181,
+      "sha256": "e1a31c8046a099df37b4bcbcafa4f4f7d7d18b1f1f0dc6d79676d41c4be976be"
+    },
+    {
+      "path": "scripts/migration-plan.mjs",
+      "bytes": 1525,
+      "sha256": "9305d8cfe8cdad73671065d675c89d0f20075d18c756f9aba5043b72e7c19a0d"
+    },
+    {
+      "path": "scripts/migration-plan.test.mjs",
+      "bytes": 3703,
+      "sha256": "10c82e7dbcaf8d8fb48e8bc96507993432404864f54dccf3b093c1a097cfe713"
+    },
+    {
+      "path": "scripts/preview-thumbnail.mjs",
+      "bytes": 1762,
+      "sha256": "fd7263a1dd76f788c2b51e9381e1f1de1a58993fd94e01040285556cd38c0c40"
+    },
+    {
+      "path": "scripts/preview.mjs",
+      "bytes": 11074,
+      "sha256": "b366b1c28844cda81d21e36a88af5f548bdec6a5a4b3000aac12be3ec99cf605"
+    },
+    {
+      "path": "scripts/preview.test.mjs",
+      "bytes": 9207,
+      "sha256": "0105fe41d056ecc22c586a191a9cbd7d0e838b7c878d6993c8c9573c7ea708b1"
+    },
+    {
+      "path": "scripts/repository-config.test.mjs",
+      "bytes": 1821,
+      "sha256": "06b758a2f427efc611b39d2bd45d3dce2a5c38c9cee8579287c2f02ec3d53306"
+    },
+    {
+      "path": "scripts/sign-out-plan.mjs",
+      "bytes": 5971,
+      "sha256": "32ae072de23b5138bf849c344caf72ab2dab6cb4617ab9915db4e4f5b9c7e2f0"
+    },
+    {
+      "path": "scripts/sign-out-plan.test.mjs",
+      "bytes": 8659,
+      "sha256": "1942e32f4b6a9d8b62733338b0f0e1a7d84ed278b4e6c4f24fa7616a3abc694e"
+    },
+    {
+      "path": "scripts/taskora-contract.test.mjs",
+      "bytes": 2147,
+      "sha256": "0f1ff2bd26f55ecf6c8791e59d225faf43715a16a31fc1876b731ea3f2982bc3"
+    },
+    {
+      "path": "scripts/with-app-env.mjs",
+      "bytes": 4601,
+      "sha256": "a846b68bd3645299c23eef965d9ef226df3a500d345d7576c23f7a2b2ff643c7"
+    },
+    {
+      "path": "scripts/with-app-env.test.mjs",
+      "bytes": 4466,
+      "sha256": "384ea7d0d20f980f733ee38d8f48b0bedd8a4ad39c80ca4792b9aeebcb275851"
+    },
+    {
+      "path": "scripts/workspace-backup.test.mjs",
+      "bytes": 4902,
+      "sha256": "f44397122010691a795866446c2b605088d912e526b1969b56b8f4bf619529b9"
+    },
+    {
+      "path": "scripts/workspace-storage-contract.test.mjs",
+      "bytes": 1669,
+      "sha256": "b64ff4244736f96c393b2dc4cf49c674035c9c6d5cb43f6d26367b11937cb3c7"
+    },
+    {
+      "path": "scripts/workspace-storage-core.test.mjs",
+      "bytes": 3426,
+      "sha256": "23c77dacb4a274e7d9456d2375783ad1f3b1e2bf3ad20fde31ccffa71e186230"
+    },
+    {
+      "path": "scripts/write-atomic.mjs",
+      "bytes": 3607,
+      "sha256": "650b62e8aa38697e1b931049025afe3aac829e6761a8aadf428712faef8b1544"
+    },
+    {
+      "path": "scripts/write-atomic.test.mjs",
+      "bytes": 7505,
+      "sha256": "e266ac99149651c368715317820934f0e8942db0fc763725ca4a096bf169ad3b"
+    },
+    {
+      "path": "server/middleware/grok-pwa.ts",
+      "bytes": 3606,
+      "sha256": "340f1fed44355a61fefdaf29a752c524ac029afb00bea3f40cc996cdb289d2f8"
+    },
+    {
+      "path": "server/virtual-grok-og-identity.d.ts",
+      "bytes": 262,
+      "sha256": "74847f2b2bade154ac07dabb239c4718a745c095df530e78b8f1ef9f053edfa2"
+    },
+    {
+      "path": "src/components/app.tsx",
+      "bytes": 3275,
+      "sha256": "5b3b957359bd78d8638d0b4405b56c4ecdbfb1a0ce3ad3fd101656e3db579048"
+    },
+    {
+      "path": "src/components/bits.tsx",
+      "bytes": 6436,
+      "sha256": "ddffbbfbd001e21d2113ffb8a5f7add6e880c4e27755c7b038d039334f909393"
+    },
+    {
+      "path": "src/components/board.tsx",
+      "bytes": 12514,
+      "sha256": "cb780ebf161d00591e0dafe6c6f4e6ef14b7ae5d8c7c28e651cb8e8ad78240c0"
+    },
+    {
+      "path": "src/components/composer.tsx",
+      "bytes": 8920,
+      "sha256": "835b1bf5c5cf491ab0026ac50d13125fc9eee3d628aa44d30f04390e1ee4ca67"
+    },
+    {
+      "path": "src/components/details.tsx",
+      "bytes": 14753,
+      "sha256": "46552ec1106bf719198b5e4ef3e805418dc40662296ca9c5fe8d592f7bcab580"
+    },
+    {
+      "path": "src/components/preview-host-bridge.tsx",
+      "bytes": 668,
+      "sha256": "e4277e80ce127e7305057fb280d03d0703c5c7115b17d2e2aecf000e4867555e"
+    },
+    {
+      "path": "src/components/shell.tsx",
+      "bytes": 18912,
+      "sha256": "a2e301fe51f3b81cbd0340a74fb95955a95d4dad619ba2062656e02a03a27a96"
+    },
+    {
+      "path": "src/components/views.tsx",
+      "bytes": 40211,
+      "sha256": "92e210fb0fbf26a9117e8c1ba08ff294e56cd13ef6dde61ebdc0876bdb694fa3"
+    },
+    {
+      "path": "src/components/workspace-sync-panel.tsx",
+      "bytes": 7016,
+      "sha256": "f1dfd9df2d59fd042de908c632d79ba214bba5a1bf59a1a40d15a5362feb25ae"
+    },
+    {
+      "path": "src/lib/app-data/app-data.test.ts",
+      "bytes": 15944,
+      "sha256": "ec0c40fdaafb4e3d551086de9f9b4a745da7c252f7fbbc5c51a8b1b0a541391e"
+    },
+    {
+      "path": "src/lib/app-data/client.server.ts",
+      "bytes": 11867,
+      "sha256": "ab544af8b5b96e16248fdcf7ce634c132ccd3659c33cf0daa22f6e74ef5a5da0"
+    },
+    {
+      "path": "src/lib/app-data/errors.ts",
+      "bytes": 1994,
+      "sha256": "8e0dd8d761b2a5a1cafcb7523e2063151f0b6677837b19c3f6d494af148f3889"
+    },
+    {
+      "path": "src/lib/app-data/index.ts",
+      "bytes": 598,
+      "sha256": "72cf57dc1a863f9693d34c11772ba4bae790cc17d9efb1e8619b8a2e6247a7fa"
+    },
+    {
+      "path": "src/lib/app-data/login.ts",
+      "bytes": 856,
+      "sha256": "fbc723841bb67148dd9de12ed614ba6c095d799a533309857cc4d202d6be5ad9"
+    },
+    {
+      "path": "src/lib/app-data/readiness-schedule.test.ts",
+      "bytes": 1146,
+      "sha256": "97c87401c474b9f87f2e21152fb377744f353736848f0044466ba2e260b06745"
+    },
+    {
+      "path": "src/lib/app-data/readiness-schedule.ts",
+      "bytes": 506,
+      "sha256": "3ea7f192220446b08747f3ef76c7d2fe150356470621f2220738b23e7976f683"
+    },
+    {
+      "path": "src/lib/app-data/readiness.ts",
+      "bytes": 366,
+      "sha256": "377786c1cf739eb9dc7c8b2bdcd09991686a700375a67a0c6e73b4334d394da1"
+    },
+    {
+      "path": "src/lib/app-data/server-only.ts",
+      "bytes": 476,
+      "sha256": "82821474088face6b9fcadad49793629e5f07a16386402b816262a1c070a3210"
+    },
+    {
+      "path": "src/lib/app-data/types.ts",
+      "bytes": 1361,
+      "sha256": "65f3c7566db12661ee9d3633eaae66a85505e00f57a61c258fa72bd22881489f"
+    },
+    {
+      "path": "src/lib/app-data/use-connector-readiness.ts",
+      "bytes": 3892,
+      "sha256": "57e6d2b3709be83ac2eed9c42eaa822a067fb5aa44a6098c982892c43f3a4f2f"
+    },
+    {
+      "path": "src/lib/auth/client.ts",
+      "bytes": 9714,
+      "sha256": "4bca649afb627b11231a7b31acfcffe9323efddebc05944b2d769d2b8589294f"
+    },
+    {
+      "path": "src/lib/auth/email-password.ts",
+      "bytes": 442,
+      "sha256": "9b1da7c786e48adfa9a6f7c485bcf5817cf2075a601d8726a965f11171910354"
+    },
+    {
+      "path": "src/lib/auth/gate-identity.server.ts",
+      "bytes": 5706,
+      "sha256": "96546b8b6910a01163c36c34a0d417d803bec222b93304be764d810838764159"
+    },
+    {
+      "path": "src/lib/auth/gate-identity.test.ts",
+      "bytes": 14346,
+      "sha256": "21202fb2b56ffd10cb9b5bb7d9f305be88cce3902b858f73cea914df05ce2652"
+    },
+    {
+      "path": "src/lib/auth/gate-session-marker.ts",
+      "bytes": 879,
+      "sha256": "3dbf8cb789b0288f9d5c53b1515a3e87d265fcb22e11fe28dc3289c4bd7c06eb"
+    },
+    {
+      "path": "src/lib/auth/gate-session.server.ts",
+      "bytes": 11980,
+      "sha256": "68aa500523ca2f0ad5c7ba34372c10aa1851a9774f8567c6b7781af5dd6cf204"
+    },
+    {
+      "path": "src/lib/auth/gates.tsx",
+      "bytes": 4924,
+      "sha256": "39950c211bd4ad4f7129082bf5a43a42ff23975e681b99fd7cfbce372f83a5be"
+    },
+    {
+      "path": "src/lib/auth/isolation.server.ts",
+      "bytes": 2386,
+      "sha256": "a4adf6a5d548e70a0be52d7efdc7433126028908072b47bf9f92135d9ee558a0"
+    },
+    {
+      "path": "src/lib/auth/middleware.ts",
+      "bytes": 2462,
+      "sha256": "8dc37c4e9bd583f175402330d0952ef4d584c7410723cc2649c4046d5084bd80"
+    },
+    {
+      "path": "src/lib/auth/pglite-dialect.ts",
+      "bytes": 4088,
+      "sha256": "bd66925574245cd47cdd98b5c068dd7b4ee4a51c9439e8421dc54c62fe7c4f50"
+    },
+    {
+      "path": "src/lib/auth/popup.server.ts",
+      "bytes": 6133,
+      "sha256": "81f8833d9ab639f76b86f4bb23fed42a04cec4b0c6d90b7a67425a9232c9bb4a"
+    },
+    {
+      "path": "src/lib/auth/preview.ts",
+      "bytes": 1679,
+      "sha256": "d52a3654a5cef7e841cbca789fd106dc464ea55db574f02aa5d295b7350f8664"
+    },
+    {
+      "path": "src/lib/auth/provider.tsx",
+      "bytes": 593,
+      "sha256": "4cbbc7f8cc1765788ad65455a33f64dcdafc6fe4ed1d13f90ccfa0ba4c13d1f3"
+    },
+    {
+      "path": "src/lib/auth/providers.ts",
+      "bytes": 1486,
+      "sha256": "4acefac17931529bdeab053588a917b06e44abdb67a275a2ca1c7841080c6a78"
+    },
+    {
+      "path": "src/lib/auth/server.ts",
+      "bytes": 12548,
+      "sha256": "e0544cadbfa1a09c3cb4cf2a0ec187dbbb2831aebf7de887a3c858abdd72ca43"
+    },
+    {
+      "path": "src/lib/auth/sign-in-gate.test.ts",
+      "bytes": 854,
+      "sha256": "2c352588cb6a8f58faf3aecc1d1f418ae827ddbb6a5eca8e56668ec72cd328d2"
+    },
+    {
+      "path": "src/lib/auth/sign-in-gate.ts",
+      "bytes": 332,
+      "sha256": "d2c65c20ab50ae41657ceecd61ded005fac29315deace9fc4d966cf56300754c"
+    },
+    {
+      "path": "src/lib/auth/use-current-user.ts",
+      "bytes": 3626,
+      "sha256": "6444e7a0e6b908ad47c73981d63552ec0d33225f24a6c63370b9cec8088442d6"
+    },
+    {
+      "path": "src/lib/auth/verify.server.ts",
+      "bytes": 3874,
+      "sha256": "42a7d5c1b17027ba004d6524a7f7bb4827b908d75ee3c3aefc940fa9c891c2ee"
+    },
+    {
+      "path": "src/lib/db.ts",
+      "bytes": 9525,
+      "sha256": "8decf7689ff4833ad2f6f263eff9041dd2a68ce923824fa1d55ad620dea72e49"
+    },
+    {
+      "path": "src/lib/env.server.ts",
+      "bytes": 477,
+      "sha256": "9b834e0978ae76332a65a05f5bc75f80684db8c6aa638916869385c12e3343d5"
+    },
+    {
+      "path": "src/lib/error-component.tsx",
+      "bytes": 1029,
+      "sha256": "d219e4297409810a21bd382e60169faf69243d49dafd17cb0ea3a1888082b2f4"
+    },
+    {
+      "path": "src/lib/filters.ts",
+      "bytes": 2922,
+      "sha256": "432e77748fb7e67b9cf772d359084f2b6179e8c064f4cd8f7f94e798c0adf59c"
+    },
+    {
+      "path": "src/lib/format.test.ts",
+      "bytes": 1517,
+      "sha256": "2dace89fddcd5f9f4fc6ac33f870643e7dd2310ed96cfd095a4643cdbe59a295"
+    },
+    {
+      "path": "src/lib/format.ts",
+      "bytes": 1464,
+      "sha256": "60be9bda713e91ce42bdda8819c375f8eb0517781a6810a193d341df77acec12"
+    },
+    {
+      "path": "src/lib/multiplayer/index.ts",
+      "bytes": 169,
+      "sha256": "bcb96816a2135e315078e2e7d0eda5522579b0caf9e768dc6c34294e4fa49137"
+    },
+    {
+      "path": "src/lib/multiplayer/p2p.ts",
+      "bytes": 20579,
+      "sha256": "4d0d2492ac249a2cf267c8d2db7688b5a2c488ab640da7727c0f1b73c2e92f60"
+    },
+    {
+      "path": "src/lib/preview-embedder-origin.ts",
+      "bytes": 1855,
+      "sha256": "c2d5e1acc5653ff2abc08a5eeb5feb3331f4e3d7c751ec83d60dee83cf33a6ee"
+    },
+    {
+      "path": "src/lib/preview-host-bridge.ts",
+      "bytes": 9595,
+      "sha256": "63a91311378037680b6be414937295069ec2950520d1dc959741cf430ba6b38b"
+    },
+    {
+      "path": "src/lib/preview-path-prefix.test.ts",
+      "bytes": 1794,
+      "sha256": "08da80da191446ed449da9a1180ccaaeebb8eaf295bf3ef9f0a5fcca51860ce1"
+    },
+    {
+      "path": "src/lib/preview-path-prefix.ts",
+      "bytes": 1458,
+      "sha256": "d46d4c21d47c2765198352b649037def35371c3995525cc42f5aff6a0f1519b7"
+    },
+    {
+      "path": "src/lib/seed.ts",
+      "bytes": 14824,
+      "sha256": "24d85710f2f9a7ce12d1bafa8e05f9bf517e0bbca2ae01f9894e525f5922ce56"
+    },
+    {
+      "path": "src/lib/stable-json.ts",
+      "bytes": 648,
+      "sha256": "893ba4591c12a55ed05e77c6a44422cb871ab980b1ba46bd2cd61c2945c7f683"
+    },
+    {
+      "path": "src/lib/store.ts",
+      "bytes": 12635,
+      "sha256": "3e9ec4f2cf233243943c8597f2504e9689a052d46042713de2fc75800d25564d"
+    },
+    {
+      "path": "src/lib/types.ts",
+      "bytes": 1726,
+      "sha256": "c50d6e2d4dc783b9b98cdca03d75c6447c61427d1c4e8f06f5cb478e1697280d"
+    },
+    {
+      "path": "src/lib/utils.ts",
+      "bytes": 1062,
+      "sha256": "c4c7bae3339b840aeb702f62015bb8e41b6fd2d9736ed20abef221a96e1a0b5f"
+    },
+    {
+      "path": "src/lib/workspace-backup.ts",
+      "bytes": 11070,
+      "sha256": "784aef838d7c1f2fca91dd8337fd69c99635eb27cbdb57d224e7d7617df8d9b4"
+    },
+    {
+      "path": "src/lib/workspace-data.ts",
+      "bytes": 1765,
+      "sha256": "4f6243508be66670c15330a4c4ff78a85945a817e0b2b24821435044b3b4527e"
+    },
+    {
+      "path": "src/lib/workspace-storage-core.ts",
+      "bytes": 2657,
+      "sha256": "14da84df444b58993b8b1272fa021b5944bc6ba59c2bc7807691c0b2fbadaa54"
+    },
+    {
+      "path": "src/lib/workspace-storage.server.ts",
+      "bytes": 10198,
+      "sha256": "2e02e77d61aa6ee89223d5d569c33b02e95fb85ce0be25fb6fbde53e3960f7c8"
+    },
+    {
+      "path": "src/lib/workspace-sync.ts",
+      "bytes": 8273,
+      "sha256": "11c81e6daf6b5f9abfa94bfb8886ca8b6a3fce4f6784ada940bb8c919e2aa4ee"
+    },
+    {
+      "path": "src/routeTree.gen.ts",
+      "bytes": 1741,
+      "sha256": "f4a843c61899ede2abbc4a7153e6a00557765f737b724b152463c533c4e0ddb0"
+    },
+    {
+      "path": "src/router.tsx",
+      "bytes": 382,
+      "sha256": "0b72f2ad19d5a6e60d1e699d2fe0e4c0a2fa00d88881314e51a0e79fb1541611"
+    },
+    {
+      "path": "src/routes/__root.tsx",
+      "bytes": 1184,
+      "sha256": "73006cbbe625454eedac96c0643d0aa892193d052e8994e10d051b9043010f61"
+    },
+    {
+      "path": "src/routes/index.tsx",
+      "bytes": 202,
+      "sha256": "736bbb6cf5f7bb34271479c277a64ccdbad96c8865e30b5989c2a5ca0782f8a0"
+    },
+    {
+      "path": "src/styles.css",
+      "bytes": 2047,
+      "sha256": "2f3cca976e392fb3c59d58ffdc99d9e0b1887e19a88ddecf9e17259b38241091"
+    },
+    {
+      "path": "startup.sh",
+      "bytes": 191,
+      "sha256": "5f0db062bbfcc0f7e7d1f8cc4302c4d1bf8fa49676457ec3de68cb74b01f80b8"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 722,
+      "sha256": "8abad87a6c62322f1f4fdff02d5f3f764ea10a98c49cfafccdc288a0dced492f"
+    },
+    {
+      "path": "vercel.json",
+      "bytes": 70,
+      "sha256": "b621d84931055b57a73e6d4547ab4b161b6bfbf091806354d3f6f67d0f57700f"
+    },
+    {
+      "path": "vite.config.ts",
+      "bytes": 6750,
+      "sha256": "5451c22b17e7d8408674909b3d231f0ae4a4d017b740491ce7df008d961a7eee"
+    }
+  ]
+}

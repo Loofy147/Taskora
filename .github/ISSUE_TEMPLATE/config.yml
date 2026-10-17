@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability privately
+    url: https://github.com/Loofy147/Taskora/security/advisories/new
+    about: Do not disclose suspected vulnerabilities in a public issue. Use private vulnerability reporting if enabled; otherwise contact the repository maintainer privately.
