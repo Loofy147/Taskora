@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { dbSource, getSql } from "./db";
+import { dbSource, getSql } from "./db.ts";
 import { parseWorkspaceBackup } from "./workspace-backup.ts";
 import {
   derivePersonalWorkspaceId,
