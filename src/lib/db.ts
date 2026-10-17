@@ -105,6 +105,39 @@ function createNeonSql(): Promise<Sql> {
   return globalRef.__pgSqlPromise__;
 }
 
+/**
+ * Load root-level SQL migrations. Vite's glob loader is the production path;
+ * the filesystem branch is deliberately opt-in for Node integration tests,
+ * where import.meta.glob does not exist.
+ */
+async function loadMigrationSources(): Promise<Record<string, string>> {
+  if (process.env.TASKORA_TEST_DB_MIGRATION_LOADER === "filesystem") {
+    const [{ readdir, readFile }, { dirname, join }, { fileURLToPath }] = await Promise.all([
+      import("node:fs/promises"),
+      import("node:path"),
+      import("node:url"),
+    ]);
+    const migrationsDir = join(dirname(fileURLToPath(import.meta.url)), "../../migrations");
+    const entries = await readdir(migrationsDir, { withFileTypes: true });
+    const files = entries
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".sql"))
+      .sort((left, right) => left.name.localeCompare(right.name));
+    const sources = await Promise.all(
+      files.map(async (entry) => [
+        `/migrations/${entry.name}`,
+        await readFile(join(migrationsDir, entry.name), "utf8"),
+      ] as const),
+    );
+    return Object.fromEntries(sources);
+  }
+
+  return import.meta.glob("/migrations/*.sql", {
+    query: "?raw",
+    import: "default",
+    eager: true,
+  }) as Record<string, string>;
+}
+
 async function createPgliteSql(): Promise<Sql> {
   // Embedded Postgres, imported on demand so it never loads on the Neon path.
   // One in-memory instance per process, shared across HMR module instances, so
@@ -137,11 +170,7 @@ async function createPgliteSql(): Promise<Sql> {
   // passes serialized on a global chain so concurrent callers never
   // double-apply.
   const migrate = async (): Promise<void> => {
-    const migrations = import.meta.glob("/migrations/*.sql", {
-      query: "?raw",
-      import: "default",
-      eager: true,
-    }) as Record<string, string>;
+    const migrations = await loadMigrationSources();
     const doneRows = await pg.query<{ name: string }>(
       "select name from _migrations",
     );

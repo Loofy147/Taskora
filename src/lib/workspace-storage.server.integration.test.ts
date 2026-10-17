@@ -10,7 +10,9 @@ if (process.env.DATABASE_URL?.trim()) {
 }
 
 const priorAuthFlag = process.env.VITE_AUTH_ENABLED;
+const priorMigrationLoader = process.env.TASKORA_TEST_DB_MIGRATION_LOADER;
 process.env.VITE_AUTH_ENABLED = "true";
+process.env.TASKORA_TEST_DB_MIGRATION_LOADER = "filesystem";
 
 // Load the storage service only after selecting authenticated mode.
 const { dbSource, getSql } = await import("./db.ts");
@@ -53,6 +55,8 @@ describe("workspace storage server integration (embedded PGlite only)", () => {
   after(() => {
     if (priorAuthFlag === undefined) delete process.env.VITE_AUTH_ENABLED;
     else process.env.VITE_AUTH_ENABLED = priorAuthFlag;
+    if (priorMigrationLoader === undefined) delete process.env.TASKORA_TEST_DB_MIGRATION_LOADER;
+    else process.env.TASKORA_TEST_DB_MIGRATION_LOADER = priorMigrationLoader;
   });
 
   it("keeps inspection read-only until a user explicitly initializes cloud storage", async () => {
