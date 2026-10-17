@@ -37,9 +37,12 @@ export class WorkspaceAccessError extends Error {
 export class WorkspaceSnapshotConflictError extends Error {
   readonly status = 409;
   readonly code = "WORKSPACE_SNAPSHOT_CONFLICT";
-  constructor(readonly currentRevision: number | null) {
+  readonly currentRevision: number | null;
+
+  constructor(currentRevision: number | null) {
     super("The workspace changed in another session. Load the latest snapshot before saving again.");
     this.name = "WorkspaceSnapshotConflictError";
+    this.currentRevision = currentRevision;
   }
 }
 
