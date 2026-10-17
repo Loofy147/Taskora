@@ -19,6 +19,9 @@ artifacts/
 .DS_Store
 Thumbs.db
 
+# Generated auth-on migration copy; canonical SQL remains in migrations/auth/0001_auth.sql
+/migrations/0001_auth.sql
+
 # App Builder runtime state (.grok/app-env.json remains tracked)
 .grok/status
 .grok/og-pending

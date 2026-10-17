@@ -9,7 +9,7 @@
 |---|---|---|
 | Browser task UI, projects, comments and sample team | Implemented as prototype | Zustand store in `src/lib/store.ts`; seeded demo data remains the default |
 | Local JSON backup/restore | Implemented | `src/lib/workspace-backup.ts`; schema and reference checks; explicit restore confirmation |
-| Personal workspace snapshot bridge | Implemented locally, not end-to-end verified | `workspace-data.ts`, `workspace-storage.server.ts`, `workspace-sync.ts`, and `migrations/0001_workspace_storage.sql`; needs authenticated PostgreSQL integration and browser QA |
+| Personal workspace snapshot bridge | Storage-level PGlite integration passes; deployed integration not verified | `workspace-storage.server.integration.test.ts` exercises snapshot round-trip, revision races, event consistency, invalid payload rejection and storage-level user isolation; live PostgreSQL/auth/browser gates remain open |
 | Authenticated durable storage by default | Disabled in shipped environment | `.grok/app-env.json` disables auth and database provisioning; cloud endpoints fail closed while `VITE_AUTH_ENABLED=false` |
 | Per-task relational CRUD | Not implemented | Current operational state is still a whole-workspace Zustand snapshot |
 | Team workspaces and invitations | Not implemented | Sample team members are not verified accounts |
@@ -36,15 +36,24 @@ Completion evidence:
 
 **Exit:** repository import is complete. A successful CI build still does not mean a live database migration or production readiness; those belong to Gate 1 and the later operational gates.
 
-### Gate 1 — Authenticated personal snapshots
+### Gate 1A — Storage service integration (COMPLETE at commit `52a2b84`)
 
-1. Provision the existing auth provider and a durable PostgreSQL `DATABASE_URL` in the deployment environment. Keep credentials in the platform secret store; never commit `.env` files.
-2. Apply `0001_workspace_storage.sql` through the existing migration runner and verify the resulting tables/indexes from a fresh database.
-3. Test explicit upload, load, page reload/resume, and backup restore in a browser against the deployed auth session.
-4. Test that `VITE_AUTH_ENABLED=false`, missing/expired sessions, malformed data, oversized payloads and mismatched workspace IDs are rejected.
-5. Use two independent accounts and prove that account A cannot inspect, load, mutate or infer account B's snapshot. Test two concurrent writers: one succeeds; a stale revision gets a conflict and never silently wins.
+The real storage service has an embedded PGlite integration suite. It verifies read-only inspection, initialize/load round-trip, distinct-user isolation and cross-account write denial, concurrent initialization, compare-and-swap behavior under concurrent saves, event-ledger consistency, invalid payload rejection, and fail-closed behavior under shared-demo auth mode.
 
-**Exit:** database integration passes and the security tests run in CI. Do not enable cloud sync for customers before this gate.
+[Post-merge CI run 39056875032](https://github.com/Loofy147/Taskora/actions/runs/39056875032) passed the configured test suites, typecheck, lint, and build. The integration suite refuses to run when `DATABASE_URL` is present; it does not test a live database.
+
+**Exit:** storage-service behavior against embedded PostgreSQL is covered. This does not certify actual login sessions or production readiness.
+
+### Gate 1B — Authenticated PostgreSQL staging (OPEN)
+
+1. Configure the intended staging deployment with `VITE_AUTH_ENABLED=true`, a real per-app auth configuration, `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, and a durable `DATABASE_URL`. Store secrets in the deployment platform; never commit them.
+2. Use the auth-on preflight to create the root migration copy of the canonical `migrations/auth/0001_auth.sql`. Confirm schema-copy drift/missing-source errors block startup/build instead of silently skipping auth schema. Auth-off mode must not apply a leftover generated copy.
+3. Apply `0001_auth.sql` and `0001_workspace_storage.sql` through the existing migration runner against a disposable staging database first. Verify applied migration names and schema objects from a fresh database; repeat the migration command to confirm idempotency.
+4. Test real sign-in/sign-out, missing and expired sessions, explicit upload, load after reload, resume, restore, invalid/oversized payloads, revision conflicts, database failure and reauthentication in a browser.
+5. Use two independent real accounts and prove account A cannot inspect, load, mutate or infer account B's snapshot through the deployed endpoints. Test two concurrent writers; one must get a 409 conflict rather than silently overwriting the other.
+6. Keep cloud sync disabled for customers until the above checks pass and the deployed revision's own CI/build evidence is recorded.
+
+**Exit:** live database migration, real authentication, browser persistence flows, failure recovery, and end-to-end two-account isolation pass in staging.
 
 ### Gate 2 — Per-entity domain operations
 
@@ -103,4 +112,4 @@ Before enabling RLS in production, verify the database engine's security patch l
 
 ## Immediate next action
 
-Proceed with **Gate 1: authenticated personal snapshots** in a controlled staging environment. Configure real authentication and PostgreSQL via deployment secrets, apply `0001_workspace_storage.sql`, and run browser-level upload/load/restore, concurrency-conflict, failure-recovery, reauthentication, and two-account isolation tests. Keep cloud sync disabled in the shipped environment until these tests pass. For every code change, use that change's own CI run as evidence; the earlier green CI result applies to commit `cf60790` only.
+Proceed with **Gate 1B: authenticated PostgreSQL staging**. Configure a staging deployment, verify the auth-schema preflight and both migrations, then run browser-level upload/load/restore, failure recovery, reauthentication, and end-to-end two-account isolation tests. Keep cloud sync disabled in the shipped environment until these tests pass. The PGlite integration suite covers the storage service, not the deployed session/DB path.

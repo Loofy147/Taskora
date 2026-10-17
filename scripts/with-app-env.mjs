@@ -24,6 +24,7 @@ import { readFileSync, realpathSync } from "node:fs";
 import { constants as osConstants } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { prepareAuthMigration } from "./prepare-auth-migration.mjs";
 
 export const APP_ENV_REL_PATH = ".grok/app-env.json";
 
@@ -111,6 +112,12 @@ function main(argv) {
     process.exit(2);
   }
   const env = mergeAppEnv(readAppEnv(projectRoot()), process.env);
+  try {
+    prepareAuthMigration(projectRoot(), env.VITE_AUTH_ENABLED !== "false");
+  } catch (err) {
+    console.error("[auth-migration] preparation failed:", err?.message || err);
+    process.exit(1);
+  }
   const child = spawn(command, args, { stdio: "inherit", env });
   // The dev server is long-running and is stopped by signalling this wrapper.
   for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) {

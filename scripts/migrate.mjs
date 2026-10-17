@@ -16,9 +16,12 @@ import { readdir, readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import pg from "pg";
-import { pendingMigrations } from "./migration-plan.mjs";
+import { migrationsForAuthMode, pendingMigrations } from "./migration-plan.mjs";
+import { mergeAppEnv, projectRoot, readAppEnv } from "./with-app-env.mjs";
 
 const databaseUrl = process.env.DATABASE_URL;
+const resolvedAppEnv = mergeAppEnv(readAppEnv(projectRoot()), process.env);
+const authEnabledFlag = resolvedAppEnv.VITE_AUTH_ENABLED;
 if (!databaseUrl) {
   console.log(
     "[migrate] DATABASE_URL not set — skipping (the PGLite fallback migrates itself).",
@@ -36,8 +39,10 @@ async function main() {
     console.log("[migrate] no migrations/ directory — nothing to do.");
     return;
   }
+  // Auth mode comes from the same app-env + process-env precedence used by Vite.
+  const activeEntries = migrationsForAuthMode(entries, authEnabledFlag);
   // An app with no schema of its own must not pay for a database connection.
-  if (pendingMigrations(entries, []).length === 0) {
+  if (pendingMigrations(activeEntries, []).length === 0) {
     console.log("[migrate] no migrations — nothing to do.");
     return;
   }
@@ -53,7 +58,7 @@ async function main() {
     );
 
     let count = 0;
-    for (const { name } of pendingMigrations(entries, applied)) {
+    for (const { name } of pendingMigrations(activeEntries, applied)) {
       const text = await readFile(join(migrationsDir, name), "utf8");
       try {
         await client.query("BEGIN");
