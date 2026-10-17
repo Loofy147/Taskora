@@ -157,3 +157,17 @@ Do not enable cloud sync in a customer deployment until the auth/database, concu
 ### Corrective documentation rule
 
 When describing Taskora, always label which track a statement applies to. Do not describe AppDeploy's task endpoints as code present in GitHub `main`, and do not describe this repository's PGlite tests as proof of the live AppDeploy database. The deployment/readiness status, browser checks, and source ref must be recorded independently for each track.
+
+
+## AppDeploy blank-screen incident and recovery — 2026-10-17
+
+This record supplements (and does not replace) the separate-track audit above.
+
+- **USER_REPORTED:** the AppDeploy staging app appeared to stall with rendering stopped.
+- **EXPERIMENTALLY_SUPPORTED:** v7 (1792265966637) screenshot was blank; the AppDeploy status API still said ready with empty runtime error arrays and no returned E2E execution result.
+- **ESTABLISHED from source inspection:** the first useEffect dependency array evaluated currentUserId before its const declaration, a deterministic JavaScript temporal-dead-zone ReferenceError during React component rendering.
+- **FIX:** v9 (1792270506351) moves the declaration ahead of its first use and includes browser-storage guards, a visible boot timeout recovery panel and a React error boundary.
+- **EXPERIMENTALLY_SUPPORTED:** a fresh external screenshot of v9 showed the workspace shell, search, sidebar and task board; AppDeploy status is ready and reported no frontend/backend/network errors.
+- **OPEN:** no executed E2E result was returned. Do not promote this render-level recovery into a claim that cloud persistence, task migration, account isolation or production readiness is verified.
+
+Prevention actions are listed in [the final release runbook](FINAL_RELEASE_RUNBOOK.md), and the full target sequence is in [the version/capability matrix](VERSION_CAPABILITY_MATRIX.md).

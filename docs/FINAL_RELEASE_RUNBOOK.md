@@ -8,7 +8,7 @@
 Before each task, record which implementation is being changed:
 
 - **GitHub source:** `Loofy147/Taskora`, branch/ref/commit, React/TanStack Start, Better Auth and PostgreSQL/PGlite.
-- **AppDeploy staging port:** app ID `taskora-ube0f6`, current deployed source revision `1792264284898`, AppDeploy auth and managed key-value database.
+- **AppDeploy staging port:** app ID `taskora-ube0f6`, current deployed source revision `1792270506351` (v9; browser render checked; E2E unverified), AppDeploy auth and managed key-value database.
 
 These are separate artifacts. A CI result on GitHub is not an AppDeploy E2E result. An AppDeploy-ready status is not a GitHub source deployment, a real PostgreSQL migration, or a production gate pass.
 
@@ -76,3 +76,20 @@ A deployment marked `ready` with an empty error list is not enough. The final ga
 - **PASS:** all mandatory gates pass; record evidence and publish the release state.
 - **CONDITIONAL:** no data/security gate is failing, but a non-critical test is pending; remain staging and document the exception.
 - **FAIL / HOLD:** migration ambiguity, unverified ownership, cross-account access, stale-write data loss, unknown write outcome, missing E2E evidence, or unresolved restore problem. Do not declare production-ready.
+
+
+## 7. Blank-screen / frontend-startup acceptance gate
+
+The 2026-10-17 incident showed that AppDeploy can report ready with an empty error list while the browser renders a blank screen. This section is mandatory for every release candidate.
+
+- [ ] Confirm the exact AppDeploy source revision and version are recorded.
+- [ ] Wait for startup completion, then capture desktop and mobile screenshots from a fresh browser session.
+- [ ] Verify the normal Taskora shell is visible: brand, navigation, page heading, search, New task action and primary workspace content.
+- [ ] Verify #root is populated with the app shell; if startup fails, a loading/recovery state must be visible instead of a silent blank canvas.
+- [ ] Check JavaScript console/page errors and failed JS/CSS/API requests, not only AppDeploy's server-side error summary.
+- [ ] Exercise direct URL load and reload; verify a blocked browser-storage API does not prevent the shell from mounting.
+- [ ] Verify the sanity E2E test includes a render assertion before any interaction; inspect the actual executed result/transcript.
+- [ ] Verify an injected render failure displays the error boundary and Reload action; verify the normal case dismisses the boot fallback.
+- [ ] Record screenshot review, console result, test run ID and source revision in the release evidence.
+
+**Hold rule:** if the normal shell is missing in a screenshot, the sanity E2E result is absent/failed, or page errors remain unexplained, status is **FAIL / HOLD** even when deployment status says ready.

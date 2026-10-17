@@ -3,7 +3,7 @@
 **Reviewed:** 2026-10-17  
 **App:** `taskora-ube0f6`  
 **URL:** https://taskora-ube0f6.v2.appdeploy.ai/  
-**Last observed deployed source revision:** `1792264284898`  
+**Latest deployed source revision (render-checked):** `1792270506351` (v9)  
 **Release state:** staging only; not approved for production use.
 
 ## Scope and identity
@@ -97,3 +97,22 @@ Use a disposable staging account or test task for destructive steps.
 5. Add team membership/invitations only after shared-workspace authorization design is approved.
 6. Add binary storage and delivered notifications as their own secured milestones.
 7. Prepare and deploy a single release candidate per the runbook.
+
+
+## Blank-screen incident and recovery — 2026-10-17
+
+### Evidence ledger
+
+- **USER_REPORTED:** the live app stopped rendering and appeared blank.
+- **EXPERIMENTALLY_SUPPORTED:** an external screenshot of v7 (revision 1792265966637) showed a blank gray canvas with no Taskora UI or loading/error message. AppDeploy still reported ready, no frontend/backend/network errors and no executed E2E result.
+- **ESTABLISHED from source inspection:** an early effect had dependency array [workspace, currentUserId] at a point before the const currentUserId = currentUser?.userId declaration. Evaluating a const before initialization throws a temporal-dead-zone ReferenceError; the component therefore failed before showing the workspace. This is the identified first-render defect.
+- **EXPERIMENTALLY_SUPPORTED:** v8 (revision 1792270420383) mounted the new React error boundary, which displayed “Taskora hit a rendering problem” with a reload action. That proved React entered the render-error path rather than remaining on the initial boot fallback.
+- **FIX APPLIED:** v9 (revision 1792270506351) moves currentUserId above its first hook dependency use. It also retains storage-read guards, an eight-second visible boot fallback and a React error boundary with a reload action.
+- **EXPERIMENTALLY_SUPPORTED after fix:** a fresh external screenshot of v9 showed the Taskora brand, sidebar, navigation, search, API indicator, statistics and task board. AppDeploy reported ready with empty frontend/backend/network error arrays.
+- **UNKNOWN / OPEN:** a status response still did not provide an executed E2E result. Authenticated writes, migration recovery, persistence across reload and account isolation remain separate verification requirements.
+
+### Required prevention
+
+The primary sanity test must assert that the Board navigation, global search and New task control render before interacting with the app. Browser verification must capture both the page screenshot and console/page errors. The automated test suite must fail a blank-screen condition even if AppDeploy marks the deployment ready.
+
+This incident does not establish production readiness; it establishes the recovery of the visible Taskora shell on AppDeploy v9.
