@@ -1,7 +1,5 @@
 import {
-  AlertCircle,
   BarChart3,
-  Calendar,
   CalendarDays,
   CheckCircle2,
   ClipboardCheck,
@@ -11,25 +9,20 @@ import {
   FileSpreadsheet,
   FileText,
   Files,
-  FolderKanban,
   Headphones,
   Heart,
   Image,
-  LayoutDashboard,
-  ListTodo,
   Megaphone,
   Package,
   PenLine,
-  Settings,
   Share2,
   ShoppingCart,
-  Star,
-  UserRound,
   Users,
   Wallet,
   type LucideIcon,
 } from "lucide-react";
-import type { AttachmentKind, Member, Priority, Status, Task, Tone, ViewId } from "@/lib/types";
+import type { AttachmentKind, Member, Priority, Status, Task, Tone } from "@/lib/types";
+import { STATUS_LABEL } from "@/components/view-config";
 import { cn, initials } from "@/lib/utils";
 
 const tones = ["bg-primary", "bg-done-ink", "bg-progress-ink", "bg-high-ink"];
@@ -102,12 +95,6 @@ const statusStyle: Record<Status, string> = {
   todo: "bg-todo text-todo-ink",
   progress: "bg-progress text-progress-ink",
   done: "bg-done text-done-ink",
-};
-
-export const STATUS_LABEL: Record<Status, string> = {
-  todo: "To Do",
-  progress: "In Progress",
-  done: "Done",
 };
 
 export function StatusPill({ status }: { status: Status }) {
@@ -186,21 +173,3 @@ export function Meter({ value, max }: { value: number; max: number }) {
   );
 }
 
-export const NAV: { id: ViewId; label: string; icon: LucideIcon }[] = [
-  { id: "board", label: "Dashboard", icon: LayoutDashboard },
-  { id: "list", label: "Tasks", icon: ListTodo },
-  { id: "projects", label: "Projects", icon: FolderKanban },
-  { id: "team", label: "Team", icon: Users },
-  { id: "calendar", label: "Calendar", icon: Calendar },
-  { id: "files", label: "Files", icon: Files },
-  { id: "reports", label: "Reports", icon: BarChart3 },
-  { id: "settings", label: "Settings", icon: Settings },
-];
-
-export const QUICKS: { id: "mine" | "assigned" | "today" | "overdue" | "high"; label: string; icon: LucideIcon; countClass: string }[] = [
-  { id: "mine", label: "My Tasks", icon: UserRound, countClass: "text-primary" },
-  { id: "assigned", label: "Assigned to Me", icon: Users, countClass: "text-primary-ink" },
-  { id: "today", label: "Today", icon: Calendar, countClass: "text-done-ink" },
-  { id: "overdue", label: "Overdue", icon: AlertCircle, countClass: "text-high-ink" },
-  { id: "high", label: "High Priority", icon: Star, countClass: "text-medium-ink" },
-];
