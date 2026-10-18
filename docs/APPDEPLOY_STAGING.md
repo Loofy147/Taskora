@@ -3,7 +3,7 @@
 **Reviewed:** 2026-10-18  
 **App:** `taskora-ube0f6`  
 **URL:** https://taskora-ube0f6.v2.appdeploy.ai/  
-**Latest deployed source revision (render-checked):** `1792326417562` (v12; E2E result unreturned)  
+**Latest deployed source revision:** `1792327799498` (v13; Settings usability smoke-tested, authenticated E2E unverified)  
 **Release state:** staging only; not approved for production use.
 
 ## Scope and identity
@@ -32,10 +32,15 @@ The deployed staging source uses AppDeploy-managed authentication and a key-valu
 
 - **ESTABLISHED:** AppDeploy reported the last revision as `ready`.
 - **EXPERIMENTALLY_SUPPORTED, limited:** the returned QA snapshot reported no frontend, backend or network errors.
+- **EXPERIMENTALLY_SUPPORTED, limited — v13 Settings smoke:** an unauthenticated live browser showed `Account & cloud sync` and `Local backup` as the primary visible controls, with `Advanced task storage`, `System status`, and `Feature availability` collapsed by default. The same read-only inspection did not sign in or mutate data.
 - **UNKNOWN / not passed:** the status response did not include an executed E2E test result. A ready deployment is not a proof of authenticated database behavior.
 - **USER_REPORTED:** account creation and some input testing were completed; a result for explicit task migration and per-task CRUD has not yet been captured.
 
 Do not turn these observations into a production-readiness claim.
+
+## v13 Settings usability follow-up — 2026-10-18
+
+The deployed source revision is `1792327799498`. The Settings page now labels the primary panels `Account & cloud sync` and `Local backup`; advanced task-mode migration, system diagnostics and feature-boundary disclosures use collapsed native disclosure sections. Live unauthenticated browser inspection confirmed the disclosure sections start collapsed and all main Settings controls are visible. This is a UI/navigation smoke test only; it does not change the account-isolation, storage, migration, or production release gates.
 
 ## API inventory
 
