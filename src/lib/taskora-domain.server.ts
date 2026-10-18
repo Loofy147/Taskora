@@ -185,7 +185,12 @@ async function readAssignees(tx: Sql, workspaceId: string, taskIds: string[]): P
 }
 
 function encodeCursor(row: Record<string, unknown>): string {
-  return Buffer.from(JSON.stringify({ createdAt: asIso(row.created_at), id: String(row.id) }), "utf8").toString("base64url");
+  const preciseTimestamp = row.cursor_created_at;
+  if (typeof preciseTimestamp !== "string") {
+    throw new TaskoraDomainError(500, "INVALID_CURSOR_TIMESTAMP", "The task-list query omitted its precise cursor timestamp.");
+  }
+  const createdAt = parseInput(InstantSchema.parse.bind(InstantSchema), preciseTimestamp);
+  return Buffer.from(JSON.stringify({ createdAt, id: String(row.id) }), "utf8").toString("base64url");
 }
 
 function decodeCursor(cursor?: string): { createdAt: string; id: string } | null {
@@ -312,7 +317,7 @@ export async function listTasks(actorInput: string, rawInput: unknown): Promise<
     const role = await activeWorkspaceRole(tx, input.workspaceId, actorUserId);
     requireCapability(role, "task:read");
     const rows = await tx.query<Record<string, unknown>>(
-      "SELECT t.* FROM taskora_tasks t " +
+      "SELECT t.*, to_char(t.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS.US\"Z"') AS cursor_created_at " +
         "WHERE t.workspace_id = $1 AND t.archived_at IS NULL " +
         "AND ($2::text IS NULL OR t.status = $2) " +
         "AND ($3::text IS NULL OR t.priority = $3) " +
