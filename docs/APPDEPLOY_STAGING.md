@@ -10,7 +10,7 @@
 
 This application is a separate AppDeploy implementation. It is **not** a runtime deployment of the GitHub TanStack Start application, and no source synchronization exists between the two. Changes to this repo do not update AppDeploy, and AppDeploy-only changes do not appear in GitHub `main` unless intentionally ported.
 
-The deployed staging source uses AppDeploy-managed authentication and a key-value database. Its task-level implementation stores each task in an individual database record and keeps a per-account list of task IDs on the owner-scoped workspace record. It is not a normalized PostgreSQL task schema; task comments and attachment metadata remain inside each task record.
+The staging source contains AppDeploy-managed authentication and a key-value database implementation. The backend code includes individual task records and an owner-scoped task index, but v16 explicitly disables/defer the corresponding cloud UI operations; this is not the current supported save path. The storage model is not normalized PostgreSQL; task comments and attachment metadata remain inside each task record.
 
 ## Current implementation inventory
 
