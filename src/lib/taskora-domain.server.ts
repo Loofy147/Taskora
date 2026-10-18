@@ -17,6 +17,7 @@ import {
   type WorkspaceRole,
 } from "./domain-contracts.ts";
 import { getSql, type Sql } from "./db.ts";
+import { derivePersonalWorkspaceId, storageAuthModeAllowsPersistence } from "./workspace-storage-core.ts";
 
 export class TaskoraDomainError extends Error {
   readonly status: number;
@@ -209,6 +210,53 @@ function decodeCursor(cursor?: string): { createdAt: string; id: string } | null
   } catch {
     throw new TaskoraDomainError(400, "INVALID_CURSOR", "The task-list cursor is malformed.");
   }
+}
+
+
+export interface PersonalDomainWorkspace {
+  workspaceId: string;
+  name: string;
+  kind: "personal";
+}
+
+/** Create-or-read the caller's canonical personal workspace in a single transaction. */
+export async function getOrCreatePersonalWorkspace(actorInput: string): Promise<PersonalDomainWorkspace> {
+  const actorUserId = requireActor(actorInput);
+  if (!storageAuthModeAllowsPersistence(process.env.VITE_AUTH_ENABLED)) {
+    throw new TaskoraDomainError(
+      503,
+      "AUTH_REQUIRED",
+      "Personal task persistence requires authenticated accounts; shared demo identity mode is disabled.",
+    );
+  }
+  const workspaceId = derivePersonalWorkspaceId(actorUserId);
+  const sql = await getSql();
+  return sql.transaction(async (tx) => {
+    await tx.query(
+      "INSERT INTO taskora_workspaces (id, owner_user_id, name, kind) " +
+        "VALUES ($1, $2, 'My workspace', 'personal') ON CONFLICT (id) DO NOTHING",
+      [workspaceId, actorUserId],
+    );
+    await tx.query(
+      "INSERT INTO taskora_workspace_memberships (workspace_id, user_id, role) " +
+        "SELECT id, owner_user_id, 'owner' FROM taskora_workspaces " +
+        "WHERE id = $1 AND owner_user_id = $2 AND kind = 'personal' " +
+        "ON CONFLICT (workspace_id, user_id) DO NOTHING",
+      [workspaceId, actorUserId],
+    );
+    const rows = await tx.query<{ id: string; name: string }>(
+      "SELECT w.id, w.name FROM taskora_workspaces w " +
+        "JOIN taskora_workspace_memberships m ON m.workspace_id = w.id " +
+        "WHERE w.id = $1 AND w.owner_user_id = $2 AND w.kind = 'personal' " +
+        "AND m.user_id = $2 AND m.role = 'owner' AND m.status = 'active' " +
+        "FOR SHARE OF w, m",
+      [workspaceId, actorUserId],
+    );
+    if (!rows[0]) {
+      throw new TaskoraDomainError(403, "PERSONAL_WORKSPACE_ACCESS_DENIED", "The personal workspace owner record is inconsistent.");
+    }
+    return { workspaceId: rows[0].id, name: rows[0].name, kind: "personal" };
+  });
 }
 
 export async function createProject(actorInput: string, rawInput: unknown): Promise<ProjectRecord> {
