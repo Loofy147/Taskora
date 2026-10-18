@@ -143,3 +143,12 @@ This incident does not establish production readiness; it establishes the recove
 - Reports are derived from the current workspace snapshot and seeded sample data, not external analytics.
 - Delivered reminders/email notifications and production backup/restore operations are not implemented or verified.
 - Track A, the GitHub React/TanStack application, remains a separate implementation and is still configured as a preview with auth and database provisioning disabled. The AppDeploy release does not synchronize Track A.
+
+
+## Follow-up live verification — 2026-10-18
+
+Against the live v11 revision `1792325012924`, a read-only API check used the embedded client API base (`api-v2.appdeploy.ai/app/taskora-ube0f6`): `GET /api/health` returned `200 application/json`; unauthenticated `GET /api/task-mode`, `GET /api/tasks`, and `GET /api/workspace` each returned `401 application/json`. Repeating those protected GETs with a deliberately invalid bearer token also returned `401 application/json`. No write routes were called in these API-boundary checks.
+
+In a separate unauthenticated audit-browser profile, an incomplete schema-v1 workspace backup was rejected and all eight original sample tasks remained unchanged. A unique temporary local task was created with due date 2026-10-19 and time range 09:30–10:00, verified after reload in Calendar, then deleted; after reload the original eight sample tasks remained. These checks validate anonymous auth denial, malformed-import rejection, and browser-local CRUD/scheduling only.
+
+**Still OPEN:** the remote browser has no authenticated Taskora session. The two existing user accounts were not accessed. Cross-account isolation, authenticated cloud snapshot persistence, per-task cloud CRUD, migration/retry/conflict recovery, and delayed-response behavior remain unverified until those existing accounts can be used in an authorized browser session. No valid token or account credentials were available or requested.
