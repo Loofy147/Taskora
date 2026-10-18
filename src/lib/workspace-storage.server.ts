@@ -143,7 +143,7 @@ export async function inspectPersonalWorkspace(userIdInput: string): Promise<Wor
       LIMIT 1`,
     [workspaceId, userId],
   );
-  const base = { workspaceId, database: dbSource === "neon" ? "postgres" as const : "preview" as const };
+  const base = { workspaceId, database: dbSource === "postgres" ? "postgres" as const : "preview" as const };
   if (!rows.length || rows[0].revision == null) {
     return { ...base, hasSnapshot: false, revision: null, updatedAt: null };
   }
@@ -169,7 +169,7 @@ export async function loadPersonalWorkspaceSnapshot(userIdInput: string): Promis
   const status = rowStatus(rows[0]);
   return {
     workspaceId,
-    database: dbSource === "neon" ? "postgres" : "preview",
+    database: dbSource === "postgres" ? "postgres" : "preview",
     hasSnapshot: true,
     ...status,
     data: parseStoredData(rows[0].data),
