@@ -135,9 +135,9 @@ The AppDeploy live source is updated through the deployment operation; there is 
 
 Track B was reported to stop rendering. External browser evidence confirmed a blank v7 viewport even though AppDeploy status was ready and the QA error lists were empty. Source inspection found a deterministic temporal-dead-zone failure: currentUserId appeared in the first effect dependency array before its const declaration. v8 made the caught rendering error visible; v9 moved the declaration above first use and a fresh external screenshot showed the normal Taskora shell.
 
-Current Track B deployed revision: 1792326417562 (v12). Status is ready; the QA snapshot reports no frontend/backend/network errors and includes fresh desktop/mobile screenshots. Live smoke checks rejected duplicate project IDs, dangling task references, duplicate comment IDs, and duplicate attachment IDs while preserving the eight sample tasks. Protected API reads returned 401 with no token and with an invalid token. Four focused QA workflows are defined, but the executed E2E result remains unavailable/unreturned, so this is **render-checked and integrity-guardrail smoke-tested, not E2E-verified**.
+Current Track B deployed revision: 1792327799498 (v13). The v12 integrity smoke checks and v13 Settings usability check are documented separately below. AppDeploy reports ready with no frontend/backend/network errors, but the executed E2E result remains unavailable/unreturned; the app is not E2E-verified.
 
-Use [the version and capability matrix](VERSION_CAPABILITY_MATRIX.md) as the complete target map. The next gate is to execute the startup sanity workflow and account/persistence tests; do not treat another clean status response as a substitute for rendered-page inspection.
+Use [the version and capability matrix](VERSION_CAPABILITY_MATRIX.md) as the complete target map. A v13 read-only browser check confirms the Settings primary controls render and advanced disclosures start collapsed. The next gate remains authenticated task CRUD, snapshot round-trip, migration recovery and two-account isolation; do not treat clean status as a substitute for those workflows.
 
 
 ### V11 review — 2026-10-18
@@ -148,3 +148,8 @@ The live rendering path and navigation were rechecked. Strict backup schema vali
 ### v12 validation update — 2026-10-18
 
 The live v12 app enforces uniqueness for task/comment/attachment/project/member IDs and verifies task project/assignee references at snapshot and task API boundaries. Anonymous health is `200 application/json`; protected task-mode/tasks/workspace GETs are `401 application/json` with no token or a deliberately invalid bearer token. These results do not prove the two existing accounts are isolated: the available browser session is unauthenticated, so account A/B tests remain open.
+
+
+### V13 Settings usability update — 2026-10-18
+
+The deployed AppDeploy Track B revision is `1792327799498`. Settings now exposes account sync and local backup as the primary visible controls; task-mode migration, system status, and feature availability are collapsed by default. Unauthenticated browser inspection confirmed this layout. **No auth/data gate changed:** authenticated persistence, task-mode migration retry/recovery, and A/B account isolation remain open because no executed authenticated E2E result has been recorded.
