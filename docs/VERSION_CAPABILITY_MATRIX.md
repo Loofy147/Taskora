@@ -110,8 +110,10 @@ Only after the core product is reliable. Require bounded permissions, traceable 
 
 ## Authoritative companions
 
-- [AppDeploy staging status and API inventory](APPDEPLOY_STAGING.md)
+- [Full-system blueprint](FULL_SYSTEM_BLUEPRINT.md) — proposed architecture, domain model, authorization, persistence and release gates
+- [Full-scale execution backlog](FULL_SCALE_EXECUTION_BACKLOG.md) — dependency-ordered engineering work with acceptance criteria
 - [Implementation roadmap](IMPLEMENTATION_ROADMAP.md)
+- [AppDeploy staging status and API inventory](APPDEPLOY_STAGING.md)
 - [Final release runbook](FINAL_RELEASE_RUNBOOK.md)
 - [Product and engineering audit](PRODUCT_AUDIT.md)
 
