@@ -239,17 +239,17 @@ describe("Taskora normalized domain contracts", () => {
   });
 
   it("requires compare-and-swap versioning and a non-empty task patch", () => {
-    assert.equal(UpdateTaskInputSchema.safeParse({ expectedVersion: 1 }).success, false);
+    assert.equal(UpdateTaskInputSchema.safeParse({ workspaceId: "workspace-1", expectedVersion: 1 }).success, false);
     assert.equal(
-      UpdateTaskInputSchema.safeParse({ expectedVersion: 1, status: "done" }).success,
+      UpdateTaskInputSchema.safeParse({ workspaceId: "workspace-1", expectedVersion: 1, status: "done" }).success,
       true,
     );
     assert.equal(
-      UpdateTaskInputSchema.safeParse({ expectedVersion: 0, status: "done" }).success,
+      UpdateTaskInputSchema.safeParse({ workspaceId: "workspace-1", expectedVersion: 0, status: "done" }).success,
       false,
     );
     assert.equal(
-      UpdateTaskInputSchema.safeParse({ expectedVersion: 1, role: "owner" }).success,
+      UpdateTaskInputSchema.safeParse({ workspaceId: "workspace-1", expectedVersion: 1, role: "owner" }).success,
       false,
     );
   });
