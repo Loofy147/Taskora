@@ -294,6 +294,10 @@ export const CreateTaskInputSchema = z
   .strict();
 
 
+export const WorkspaceScopeSchema = z
+  .object({ workspaceId: IdentifierSchema })
+  .strict();
+
 export const CreateProjectInputSchema = z
   .object({
     workspaceId: IdentifierSchema,
@@ -465,6 +469,7 @@ export type WorkspaceMembership = z.infer<typeof WorkspaceMembershipSchema>;
 export type SubtaskRecord = z.infer<typeof SubtaskRecordSchema>;
 export type CommentRecord = z.infer<typeof CommentRecordSchema>;
 export type CreateTaskInput = z.infer<typeof CreateTaskInputSchema>;
+export type WorkspaceScope = z.infer<typeof WorkspaceScopeSchema>;
 export type CreateProjectInput = z.infer<typeof CreateProjectInputSchema>;
 export type ListTasksInput = z.infer<typeof ListTasksInputSchema>;
 export type GetTaskInput = z.infer<typeof GetTaskInputSchema>;
