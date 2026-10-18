@@ -42,3 +42,105 @@ jobs:
 
       - name: Production build (migration runner skips without DATABASE_URL)
         run: npm run build
+
+  migration:
+    name: Auth-on PostgreSQL migration verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: taskora_migration_test
+          POSTGRES_USER: taskora
+          POSTGRES_PASSWORD: taskora_test_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U taskora -d taskora_migration_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://taskora:taskora_test_only@localhost:5432/taskora_migration_test
+      VITE_AUTH_ENABLED: "true"
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Prepare the canonical Better Auth schema
+        run: |
+          node --input-type=module -e 'import { prepareAuthMigration } from "./scripts/prepare-auth-migration.mjs"; const result = prepareAuthMigration(process.cwd(), true); if (!["copied", "already-present"].includes(result.status)) throw new Error("Auth-on migration preflight did not prepare the canonical schema.");'
+
+      - name: Apply migrations to the disposable PostgreSQL database
+        run: npm run db:migrate
+
+      - name: Reapply migrations and verify schema objects
+        run: |
+          npm run db:migrate
+          node --input-type=module <<'NODE'
+          import assert from "node:assert/strict";
+          import pg from "pg";
+
+          const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+          try {
+            const migrationResult = await pool.query("SELECT name FROM _migrations ORDER BY name");
+            assert.deepEqual(
+              migrationResult.rows.map((row) => row.name),
+              ["0001_auth.sql", "0001_workspace_storage.sql", "0002_normalized_domain.sql"],
+              "auth-on migrations must be recorded exactly once",
+            );
+
+            const tableResult = await pool.query(
+              "SELECT table_name FROM information_schema.tables " +
+              "WHERE table_schema = 'public' AND table_type = 'BASE TABLE' " +
+              "AND table_name <> '_migrations' ORDER BY table_name",
+            );
+            assert.deepEqual(
+              tableResult.rows.map((row) => row.table_name),
+              [
+                "account",
+                "session",
+                "taskora_comments",
+                "taskora_projects",
+                "taskora_subtasks",
+                "taskora_task_assignees",
+                "taskora_tasks",
+                "taskora_workspace_events",
+                "taskora_workspace_memberships",
+                "taskora_workspace_state",
+                "taskora_workspaces",
+                "user",
+                "verification",
+              ],
+              "auth and workspace storage tables must exist in the disposable database",
+            );
+
+            const constraints = await pool.query(
+              "SELECT conname FROM pg_constraint " +
+              "WHERE conrelid = 'public.taskora_workspace_memberships'::regclass AND contype = 'c'",
+            );
+            assert.ok(
+              constraints.rows.some((row) => row.conname === "taskora_membership_status_check"),
+              "active/revoked membership constraint must be installed",
+            );
+            const domainForeignKeys = await pool.query(
+              "SELECT count(*)::int AS count FROM pg_constraint " +
+              "WHERE conrelid IN ('public.taskora_tasks'::regclass, 'public.taskora_task_assignees'::regclass) " +
+              "AND contype = 'f'",
+            );
+            assert.ok(domainForeignKeys.rows[0].count >= 4, "normalized task and assignee workspace foreign keys must be installed");
+            console.log("PASS: auth-on PostgreSQL migrations applied, re-applied idempotently, and schema-checked.");
+          } finally {
+            await pool.end();
+          }
+          NODE
