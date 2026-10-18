@@ -368,8 +368,8 @@ export const WorkspaceDomainSnapshotSchema = z
       }
     }
 
-    const projectsById = new Map(snapshot.projects.map((project) => [project.id, project]));
-    const tasksById = new Map(snapshot.tasks.map((task) => [task.id, task]));
+    const projectsById = new Map(snapshot.projects.map((project) => [project.id, project] as const));
+    const tasksById = new Map(snapshot.tasks.map((task) => [task.id, task] as const));
 
     snapshot.projects.forEach((project, index) => {
       if (!activeMemberships.has(membershipKey(project.workspaceId, project.createdById))) {
