@@ -1,12 +1,12 @@
 # Taskora implementation roadmap
 
-**Updated:** 2026-10-17  
+**Updated:** 2026-10-18  
 **Purpose:** order engineering work by risk reduction and user-visible value. This roadmap separates the repository implementation from the independent AppDeploy staging port. A code-ready deployment is not a production-readiness claim.
 
 ## Implementation tracks — keep these separate
 
 - **Track A — GitHub source:** [`Loofy147/Taskora`](https://github.com/Loofy147/Taskora), `main` at audit baseline `5cc189106e3eb0a897708c52beeefe4e7e60ae1b`. This is the maintained React/TanStack Start implementation. The shipped app environment keeps auth and database provisioning off. Its whole-workspace snapshot bridge has embedded PGlite integration tests, but live authenticated PostgreSQL staging remains open.
-- **Track B — AppDeploy staging:** [live app](https://taskora-ube0f6.v2.appdeploy.ai/), app ID `taskora-ube0f6`, deployed source revision `1792271940323` (v10; browser render checked, E2E still unverified). This remains a separate codebase with AppDeploy auth and a key-value managed database. The v10 migration path merges saved and submitted snapshot tasks, rejects conflicting content for the same task ID, preflights existing records, and refuses activation if the workspace revision changes. It is not generated from, or synchronized with, Track A.
+- **Track B — AppDeploy staging:** [live app](https://taskora-ube0f6.v2.appdeploy.ai/), app ID `taskora-ube0f6`, deployed source revision `1792325012924` (v11; browser render checked, E2E still unverified). This remains a separate codebase with AppDeploy auth and a key-value managed database. v10 migration guards remain; v11 adds strict client/server workspace validation, encoded account-local storage keys, and identity checks around asynchronous state updates. A read-only smoke check saw all eight views render without reported browser/network errors. It is not generated from, or synchronized with, Track A.
 - **Evidence boundary:** the AppDeploy system reported status `ready` and no frontend/backend/network errors in its QA snapshot; it did not return an executed E2E result. The user reported account creation and trying inputs, but no specific migration/CRUD test outcome has been recorded. See [AppDeploy staging status](APPDEPLOY_STAGING.md).
 - **One release candidate at a time:** do not spend AppDeploy daily deployment capacity on intermediate edits. Prepare the whole candidate and use [the final release runbook](FINAL_RELEASE_RUNBOOK.md) and [version/capability matrix](VERSION_CAPABILITY_MATRIX.md).
 
@@ -135,6 +135,11 @@ The AppDeploy live source is updated through the deployment operation; there is 
 
 Track B was reported to stop rendering. External browser evidence confirmed a blank v7 viewport even though AppDeploy status was ready and the QA error lists were empty. Source inspection found a deterministic temporal-dead-zone failure: currentUserId appeared in the first effect dependency array before its const declaration. v8 made the caught rendering error visible; v9 moved the declaration above first use and a fresh external screenshot showed the normal Taskora shell.
 
-Current Track B deployed revision: 1792271940323 (v10). Status is ready; validation has no errors and the QA snapshot reports no frontend/backend/network errors with fresh desktop/mobile screenshots. The E2E result remains unavailable/unreturned, so this is **render-checked, not E2E-verified**. The deployed test definitions now include migration preservation and divergent-same-ID conflict cases.
+Current Track B deployed revision: 1792325012924 (v11). Status is ready; the QA snapshot reports no frontend/backend/network errors and includes fresh desktop/mobile screenshots. A read-only browser smoke check confirmed all eight views render. Four focused QA workflows are defined, but the executed E2E result remains unavailable/unreturned, so this is **render-checked, not E2E-verified**.
 
 Use [the version and capability matrix](VERSION_CAPABILITY_MATRIX.md) as the complete target map. The next gate is to execute the startup sanity workflow and account/persistence tests; do not treat another clean status response as a substitute for rendered-page inspection.
+
+
+### V11 review — 2026-10-18
+
+The live rendering path and navigation were rechecked. Strict backup schema validation and local account-key/async-response hardening are present in Track B v11 source. Account switching, actual cloud persistence, import rejection, migration recovery and two-account isolation still require executed E2E evidence. Team membership, binary files, delivered notifications and production operations remain later milestones, not implemented capabilities.
