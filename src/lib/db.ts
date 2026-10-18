@@ -162,6 +162,12 @@ async function loadMigrationSources(): Promise<Record<string, string>> {
   }) as Record<string, string>;
 }
 
+// PGlite has its own parser registry; these are independent of node-postgres.
+const OID_INT8 = 20;
+const OID_DATE = 1082;
+const OID_INTERVAL = 1186;
+const identity = (value: string) => value;
+
 async function createPgliteSql(): Promise<Sql> {
   // Embedded Postgres, imported on demand so it never loads on the Neon path.
   // One in-memory instance per process, shared across HMR module instances, so
