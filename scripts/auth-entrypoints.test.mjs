@@ -8,8 +8,11 @@ test("Better Auth catch-all forwards GET and POST requests to the server handler
   const source = await readProjectFile("src/routes/api/auth/$.ts");
 
   assert.match(source, /createFileRoute\(["']\/api\/auth\/\$["']\)/);
-  assert.match(source, /GET:\s*\(\{\s*request\s*\}\)\s*=>\s*auth\.handler\(request\)/);
-  assert.match(source, /POST:\s*\(\{\s*request\s*\}\)\s*=>\s*auth\.handler\(request\)/);
+  assert.match(source, /GET:\s*\(\{\s*request\s*\}\)\s*=>\s*handleAuthRequest\(request\)/);
+  assert.match(source, /POST:\s*\(\{\s*request\s*\}\)\s*=>\s*handleAuthRequest\(request\)/);
+  assert.match(source, /status:\s*503/);
+  assert.match(source, /AUTH_CONFIGURATION_REQUIRED/);
+  assert.match(source, /return auth\.handler\(request\)/);
 });
 
 test("login page exposes configured providers, a disabled-auth message, and safe error feedback", async () => {
