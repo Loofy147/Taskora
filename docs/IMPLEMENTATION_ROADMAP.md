@@ -135,7 +135,7 @@ The AppDeploy live source is updated through the deployment operation; there is 
 
 Track B was reported to stop rendering. External browser evidence confirmed a blank v7 viewport even though AppDeploy status was ready and the QA error lists were empty. Source inspection found a deterministic temporal-dead-zone failure: currentUserId appeared in the first effect dependency array before its const declaration. v8 made the caught rendering error visible; v9 moved the declaration above first use and a fresh external screenshot showed the normal Taskora shell.
 
-Current Track B deployed revision: 1792327799498 (v13). The v12 integrity smoke checks and v13 Settings usability check are documented separately below. AppDeploy reports ready with no frontend/backend/network errors, but the executed E2E result remains unavailable/unreturned; the app is not E2E-verified.
+Current Track B deployed revision: 1792338457910 (v14). The v12 integrity checks, v13 Settings cleanup and v14 cloud-status correction are documented separately below. AppDeploy reports ready with no frontend/backend/network errors, but the executed E2E result remains unavailable/unreturned; the app is not E2E-verified.
 
 Use [the version and capability matrix](VERSION_CAPABILITY_MATRIX.md) as the complete target map. A v13 read-only browser check confirms the Settings primary controls render and advanced disclosures start collapsed. The next gate remains authenticated task CRUD, snapshot round-trip, migration recovery and two-account isolation; do not treat clean status as a substitute for those workflows.
 
@@ -153,3 +153,8 @@ The live v12 app enforces uniqueness for task/comment/attachment/project/member 
 ### V13 Settings usability update — 2026-10-18
 
 The deployed AppDeploy Track B revision is `1792327799498`. Settings now exposes account sync and local backup as the primary visible controls; task-mode migration, system status, and feature availability are collapsed by default. Unauthenticated browser inspection confirmed this layout. **No auth/data gate changed:** authenticated persistence, task-mode migration retry/recovery, and A/B account isolation remain open because no executed authenticated E2E result has been recorded.
+
+
+### V14 cloud-status correctness update — 2026-10-18
+
+The deployed Track B revision is `1792338457910`. Remote revision `0` is now treated as a real empty account only after a valid workspace response; failed or invalid reads show `Unknown` and explicit retry guidance. Settings visibly places account sync and local backup before advanced storage and diagnostics. Added a QA-fault regression definition for a simulated `GET /api/workspace` 503. E2E execution is still unconfirmed, so authenticated cloud persistence, migration recovery and two-account isolation remain release gates.
