@@ -10,6 +10,7 @@ import {
   ProjectRecordSchema,
   TaskRecordSchema,
   UpdateTaskInputSchema,
+  WorkspaceScopeSchema,
   roleCan,
   type ProjectRecord,
   type TaskRecord,
@@ -229,9 +230,8 @@ export async function createProject(actorInput: string, rawInput: unknown): Prom
 
 export async function listProjects(actorInput: string, workspaceIdInput: string): Promise<ProjectRecord[]> {
   const actorUserId = requireActor(actorInput);
-  const workspaceId = parseInput(GetTaskInputSchema.parse.bind(GetTaskInputSchema), {
+  const workspaceId = parseInput(WorkspaceScopeSchema.parse.bind(WorkspaceScopeSchema), {
     workspaceId: workspaceIdInput,
-    taskId: "unused",
   }).workspaceId;
   const sql = await getSql();
   return sql.transaction(async (tx) => {
