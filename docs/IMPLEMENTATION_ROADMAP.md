@@ -135,7 +135,7 @@ The AppDeploy live source is updated through the deployment operation; there is 
 
 Track B was reported to stop rendering. External browser evidence confirmed a blank v7 viewport even though AppDeploy status was ready and the QA error lists were empty. Source inspection found a deterministic temporal-dead-zone failure: currentUserId appeared in the first effect dependency array before its const declaration. v8 made the caught rendering error visible; v9 moved the declaration above first use and a fresh external screenshot showed the normal Taskora shell.
 
-Current Track B deployed revision: 1792338457910 (v14). The v12 integrity checks, v13 Settings cleanup and v14 cloud-status correction are documented separately below. AppDeploy reports ready with no frontend/backend/network errors, but the executed E2E result remains unavailable/unreturned; the app is not E2E-verified.
+At the time of the blank-screen incident, Track B was at revision 1792338457910 (v14). The v12 integrity checks, v13 Settings cleanup and v14 cloud-status correction are documented as historical milestones below. The current Track B baseline is recorded in the v16 local-first update at the end of this roadmap.
 
 Use [the version and capability matrix](VERSION_CAPABILITY_MATRIX.md) as the complete target map. A v13 read-only browser check confirms the Settings primary controls render and advanced disclosures start collapsed. The next gate remains authenticated task CRUD, snapshot round-trip, migration recovery and two-account isolation; do not treat clean status as a substitute for those workflows.
 
