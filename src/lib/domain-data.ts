@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
 import {
   ArchiveTaskInputSchema,
   CreateProjectInputSchema,
@@ -7,6 +6,7 @@ import {
   GetTaskInputSchema,
   ListTasksInputSchema,
   UpdateTaskInputSchema,
+  WorkspaceScopeSchema,
 } from "./domain-contracts.ts";
 import { authMiddleware } from "./auth/middleware";
 import {
@@ -19,7 +19,6 @@ import {
   updateTask,
 } from "./taskora-domain.server";
 
-const WorkspaceScopeSchema = z.object({ workspaceId: z.string().trim().min(1).max(200) }).strict();
 
 /** The request's actor identity is derived from verified auth middleware, never request data. */
 export const listTaskoraProjects = createServerFn({ method: "GET" })
