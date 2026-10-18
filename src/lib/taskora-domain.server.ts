@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { ZodError } from "zod";
 import {
   ArchiveTaskInputSchema,
@@ -6,6 +6,7 @@ import {
   CreateTaskInputSchema,
   GetTaskInputSchema,
   InstantSchema,
+  IdempotencyKeySchema,
   ListTasksInputSchema,
   ProjectRecordSchema,
   TaskRecordSchema,
@@ -18,6 +19,7 @@ import {
 } from "./domain-contracts.ts";
 import { getSql, type Sql } from "./db.ts";
 import { derivePersonalWorkspaceId, storageAuthModeAllowsPersistence } from "./workspace-storage-core.ts";
+import { stableWorkspaceJson } from "./stable-json.ts";
 
 export class TaskoraDomainError extends Error {
   readonly status: number;
@@ -56,6 +58,86 @@ function requireActor(actorUserId: string): string {
 function requireCapability(role: WorkspaceRole, capability: Parameters<typeof roleCan>[1]): void {
   if (!roleCan(role, capability)) {
     throw new TaskoraDomainError(403, "FORBIDDEN", "Your workspace role does not allow this operation.");
+  }
+}
+
+type IdempotencyOperation = "project.create" | "task.create";
+type IdempotencyRequest = {
+  workspaceId: string;
+  actorUserId: string;
+  operation: IdempotencyOperation;
+  requestId: string;
+  requestHash: string;
+};
+type ParseSchema<T> = { parse(value: unknown): T };
+type IdempotencyClaim<T> =
+  | { replayed: false }
+  | { replayed: true; value: T };
+
+function fingerprintRequest(input: unknown): string {
+  return createHash("sha256").update(stableWorkspaceJson(input), "utf8").digest("hex");
+}
+
+function parseIdempotencyKey(value: string | undefined): string | null {
+  if (value === undefined) return null;
+  return parseInput(IdempotencyKeySchema.parse.bind(IdempotencyKeySchema), value);
+}
+
+async function claimIdempotency<T>(
+  tx: Sql,
+  request: IdempotencyRequest,
+  responseSchema: ParseSchema<T>,
+): Promise<IdempotencyClaim<T>> {
+  const claimed = await tx.query<{ request_id: string }>(
+    "INSERT INTO taskora_idempotency_records " +
+      "(workspace_id, actor_user_id, operation, request_id, request_hash, response) " +
+      "VALUES ($1, $2, $3, $4::uuid, $5, NULL) " +
+      "ON CONFLICT (workspace_id, actor_user_id, operation, request_id) DO NOTHING " +
+      "RETURNING request_id",
+    [request.workspaceId, request.actorUserId, request.operation, request.requestId, request.requestHash],
+  );
+  if (claimed[0]) return { replayed: false };
+
+  const existing = await tx.query<{ request_hash: string; response: unknown }>(
+    "SELECT request_hash, response FROM taskora_idempotency_records " +
+      "WHERE workspace_id = $1 AND actor_user_id = $2 AND operation = $3 AND request_id = $4::uuid " +
+      "FOR UPDATE",
+    [request.workspaceId, request.actorUserId, request.operation, request.requestId],
+  );
+  const record = existing[0];
+  if (!record) {
+    throw new TaskoraDomainError(503, "IDEMPOTENCY_RECORD_UNAVAILABLE", "The previous create request could not be verified. Refresh the workspace before retrying.");
+  }
+  if (record.request_hash !== request.requestHash) {
+    throw new TaskoraDomainError(409, "IDEMPOTENCY_KEY_REUSED", "This request key was already used for different create data. Refresh the form before retrying.");
+  }
+  if (record.response == null) {
+    throw new TaskoraDomainError(503, "IDEMPOTENCY_RESULT_UNAVAILABLE", "The previous create request has no confirmed result. Refresh the workspace before retrying.");
+  }
+  return { replayed: true, value: responseSchema.parse(record.response) };
+}
+
+async function storeIdempotencyResponse(
+  tx: Sql,
+  request: IdempotencyRequest,
+  response: unknown,
+): Promise<void> {
+  const rows = await tx.query<{ request_id: string }>(
+    "UPDATE taskora_idempotency_records SET response = $6::jsonb " +
+      "WHERE workspace_id = $1 AND actor_user_id = $2 AND operation = $3 " +
+      "AND request_id = $4::uuid AND request_hash = $5 AND response IS NULL " +
+      "RETURNING request_id",
+    [
+      request.workspaceId,
+      request.actorUserId,
+      request.operation,
+      request.requestId,
+      request.requestHash,
+      JSON.stringify(response),
+    ],
+  );
+  if (!rows[0]) {
+    throw new TaskoraDomainError(500, "IDEMPOTENCY_RESULT_SAVE_FAILED", "The create result could not be recorded atomically.");
   }
 }
 
@@ -259,23 +341,36 @@ export async function getOrCreatePersonalWorkspace(actorInput: string): Promise<
   });
 }
 
-export async function createProject(actorInput: string, rawInput: unknown): Promise<ProjectRecord> {
+export async function createProject(
+  actorInput: string,
+  rawInput: unknown,
+  requestIdInput?: string,
+): Promise<ProjectRecord> {
   const actorUserId = requireActor(actorInput);
   const input = parseInput(CreateProjectInputSchema.parse.bind(CreateProjectInputSchema), rawInput);
+  const requestId = parseIdempotencyKey(requestIdInput);
+  const idempotencyRequest: IdempotencyRequest | null = requestId
+    ? { workspaceId: input.workspaceId, actorUserId, operation: "project.create", requestId, requestHash: fingerprintRequest(input) }
+    : null;
   const sql = await getSql();
   return sql.transaction(async (tx) => {
     const role = await activeWorkspaceRole(tx, input.workspaceId, actorUserId);
     requireCapability(role, "project:create");
+    if (idempotencyRequest) {
+      const claim = await claimIdempotency(tx, idempotencyRequest, ProjectRecordSchema);
+      if (claim.replayed) return claim.value;
+    }
     const rows = await tx.query<Record<string, unknown>>(
       "INSERT INTO taskora_projects (id, workspace_id, name, description, status, created_by_user_id, version) " +
         "VALUES ($1, $2, $3, $4, 'active', $5, 1) RETURNING *",
       [randomUUID(), input.workspaceId, input.name, input.description, actorUserId],
     );
     if (!rows[0]) throw new TaskoraDomainError(500, "PROJECT_CREATE_FAILED", "Project creation returned no record.");
-    return toProject(rows[0]);
+    const project = toProject(rows[0]);
+    if (idempotencyRequest) await storeIdempotencyResponse(tx, idempotencyRequest, project);
+    return project;
   });
 }
-
 export async function listProjects(actorInput: string, workspaceIdInput: string): Promise<ProjectRecord[]> {
   const actorUserId = requireActor(actorInput);
   const workspaceId = parseInput(WorkspaceScopeSchema.parse.bind(WorkspaceScopeSchema), {
@@ -294,24 +389,36 @@ export async function listProjects(actorInput: string, workspaceIdInput: string)
   });
 }
 
-export async function createTask(actorInput: string, rawInput: unknown): Promise<TaskRecord> {
+export async function createTask(
+  actorInput: string,
+  rawInput: unknown,
+  requestIdInput?: string,
+): Promise<TaskRecord> {
   const actorUserId = requireActor(actorInput);
   const input = parseInput(CreateTaskInputSchema.parse.bind(CreateTaskInputSchema), rawInput);
+  const requestId = parseIdempotencyKey(requestIdInput);
+  const idempotencyRequest: IdempotencyRequest | null = requestId
+    ? { workspaceId: input.workspaceId, actorUserId, operation: "task.create", requestId, requestHash: fingerprintRequest(input) }
+    : null;
   const sql = await getSql();
   return sql.transaction(async (tx) => {
     const role = await activeWorkspaceRole(tx, input.workspaceId, actorUserId);
     requireCapability(role, "task:create");
+    if (idempotencyRequest) {
+      const claim = await claimIdempotency(tx, idempotencyRequest, TaskRecordSchema);
+      if (claim.replayed) return claim.value;
+    }
     assertAssignmentAllowed(role, actorUserId, input.assigneeIds);
     await assertProjectAvailable(tx, input.workspaceId, input.projectId);
     await assertActiveAssignees(tx, input.workspaceId, input.assigneeIds);
-
+    const taskId = randomUUID();
     const rows = await tx.query<Record<string, unknown>>(
       "INSERT INTO taskora_tasks (" +
         "id, workspace_id, project_id, title, description, status, priority, due_date, " +
         "scheduled_start_at, scheduled_end_at, scheduled_timezone, created_by_user_id, version" +
         ") VALUES ($1, $2, $3, $4, $5, $6, $7, $8::date, $9::timestamptz, $10::timestamptz, $11, $12, 1) RETURNING *",
       [
-        randomUUID(),
+        taskId,
         input.workspaceId,
         input.projectId,
         input.title,
@@ -331,13 +438,14 @@ export async function createTask(actorInput: string, rawInput: unknown): Promise
       await tx.query(
         "INSERT INTO taskora_task_assignees (workspace_id, task_id, user_id) " +
           "SELECT $1, $2, unnest($3::text[])",
-        [input.workspaceId, String(row.id), input.assigneeIds],
+        [input.workspaceId, taskId, input.assigneeIds],
       );
     }
-    return toTask(row, input.assigneeIds);
+    const task = toTask(row, input.assigneeIds);
+    if (idempotencyRequest) await storeIdempotencyResponse(tx, idempotencyRequest, task);
+    return task;
   });
 }
-
 export async function getTask(actorInput: string, rawInput: unknown): Promise<TaskRecord> {
   const actorUserId = requireActor(actorInput);
   const input = parseInput(GetTaskInputSchema.parse.bind(GetTaskInputSchema), rawInput);

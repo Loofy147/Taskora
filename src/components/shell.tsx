@@ -184,7 +184,12 @@ function Topbar() {
             isPending ? (
               <span className="px-2 text-xs text-faint" role="status">Checking account…</span>
             ) : user ? (
-              <UserButton />
+              <div className="flex items-center gap-2">
+                <Link to="/workspace" className="inline-flex min-h-10 items-center rounded-xl border border-line px-3 text-sm font-medium hover:bg-chip">
+                  Workspace
+                </Link>
+                <UserButton />
+              </div>
             ) : (
               <Link to="/login" className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-fg hover:bg-primary-ink">
                 Sign in

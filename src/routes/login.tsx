@@ -19,7 +19,7 @@ function Login() {
   }
 
   if (authEnabled && user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/workspace" replace />;
   }
 
   return (
@@ -41,7 +41,7 @@ function Login() {
                 onClick={() => {
                   setPendingProviderId(provider.providerId);
                   setError(null);
-                  void signIn(provider.providerId, { callbackURL: "/" })
+                  void signIn(provider.providerId, { callbackURL: "/workspace", errorCallbackURL: "/login" })
                     .catch((cause: unknown) => {
                       setError(cause instanceof Error ? cause.message : "Could not start sign-in. Please retry.");
                     })

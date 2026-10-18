@@ -2,8 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import {
   ArchiveTaskInputSchema,
   CreatePersonalWorkspaceInputSchema,
-  CreateProjectInputSchema,
-  CreateTaskInputSchema,
+  CreateProjectCommandSchema,
+  CreateTaskCommandSchema,
   GetTaskInputSchema,
   ListTasksInputSchema,
   UpdateTaskInputSchema,
@@ -35,9 +35,12 @@ export const listTaskoraProjects = createServerFn({ method: "GET" })
   .handler(({ context, data }) => listProjects(context.userId, data.workspaceId));
 
 export const createTaskoraProject = createServerFn({ method: "POST" })
-  .validator(CreateProjectInputSchema)
+  .validator(CreateProjectCommandSchema)
   .middleware([authMiddleware])
-  .handler(({ context, data }) => createProject(context.userId, data));
+  .handler(({ context, data }) => {
+    const { requestId, ...input } = data;
+    return createProject(context.userId, input, requestId);
+  });
 
 export const listTaskoraTasks = createServerFn({ method: "GET" })
   .validator(ListTasksInputSchema)
@@ -50,9 +53,12 @@ export const getTaskoraTask = createServerFn({ method: "GET" })
   .handler(({ context, data }) => getTask(context.userId, data));
 
 export const createTaskoraTask = createServerFn({ method: "POST" })
-  .validator(CreateTaskInputSchema)
+  .validator(CreateTaskCommandSchema)
   .middleware([authMiddleware])
-  .handler(({ context, data }) => createTask(context.userId, data));
+  .handler(({ context, data }) => {
+    const { requestId, ...input } = data;
+    return createTask(context.userId, input, requestId);
+  });
 
 export const updateTaskoraTask = createServerFn({ method: "POST" })
   .validator(UpdateTaskInputSchema)
