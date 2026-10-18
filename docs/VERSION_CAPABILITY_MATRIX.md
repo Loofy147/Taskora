@@ -20,7 +20,7 @@
 - **Observed result:** the v16 deployment reports ready; its QA snapshot has empty frontend/network error arrays and no frontend/backend errors. The five current test definitions have one sanity case, but AppDeploy did not return an executed E2E result. Earlier v12–v14 smoke checks remain historical evidence only.
 - **Root cause:** an early effect dependency array referenced currentUserId before its const declaration, triggering a temporal-dead-zone error while rendering. The declaration was moved above its first use.
 - **Still unknown:** the AppDeploy status response did not return an executed E2E result. Real sign-in, migration, data persistence, concurrent edits and account isolation remain unverified end to end.
-- **Track boundary:** v13 is the AppDeploy Track B source. It is not the GitHub application deployed, and AppDeploy-only source changes do not automatically synchronize into GitHub `main`.
+- **Track boundary:** v16 is the current AppDeploy Track B source. It is not the GitHub application deployed, and AppDeploy-only source changes do not automatically synchronize into GitHub `main`.
 
 ## Capability matrix
 
