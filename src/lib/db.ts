@@ -9,10 +9,11 @@ const databaseUrl =
   rawDatabaseUrl && rawDatabaseUrl.trim() ? rawDatabaseUrl : undefined;
 
 /**
- * Active backend: real **Neon** when `DATABASE_URL` is set (deployed / configured
- * sandbox), otherwise a local embedded **PGLite** (Postgres compiled to WASM) so
- * the app has a working database even with nothing configured — the live preview
- * included. Swap in Neon later by just setting `DATABASE_URL`; no code changes.
+ * Database selection is deliberately environment-aware:
+ * - `DATABASE_URL` -> external PostgreSQL (Neon or another compatible provider).
+ * - Local development/tests without a URL -> embedded PGlite.
+ * - Vercel without a URL -> `unconfigured`; never try to open PGlite in a
+ *   serverless bundle or silently imply that ephemeral process memory is durable.
  */
 export const dbSource: DbSource = resolveDbSource({
   databaseUrl,
@@ -273,9 +274,9 @@ export function getSql(): Promise<Sql> {
 }
 
 /**
- * The shared PGLite instance (preview only), with `migrations/*.sql` applied.
- * Lets Better Auth persist to the SAME embedded DB as app data in preview (via a
- * Kysely dialect). Throws when `DATABASE_URL` is set (that path uses Neon).
+ * The shared PGLite instance for local development and isolated tests, with
+ * `migrations/*.sql` applied. It is never a Vercel persistence fallback.
+ * Throws when PostgreSQL is configured or the current runtime is unconfigured.
  */
 export async function getPglite(): Promise<import("@electric-sql/pglite").PGlite> {
   if (dbSource !== "pglite") {
