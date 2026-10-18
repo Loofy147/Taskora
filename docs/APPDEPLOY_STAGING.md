@@ -1,9 +1,9 @@
 # AppDeploy staging port — status and implementation guide
 
-**Reviewed:** 2026-10-17  
+**Reviewed:** 2026-10-18  
 **App:** `taskora-ube0f6`  
 **URL:** https://taskora-ube0f6.v2.appdeploy.ai/  
-**Latest deployed source revision (render-checked):** `1792271940323` (v10; E2E result unreturned)  
+**Latest deployed source revision (render-checked):** `1792325012924` (v11; E2E result unreturned)  
 **Release state:** staging only; not approved for production use.
 
 ## Scope and identity
@@ -125,3 +125,21 @@ This incident does not establish production readiness; it establishes the recove
 - **Deployment evidence:** revision `1792271940323` is `ready`; AppDeploy reported no frontend, backend, or network errors and produced fresh desktop/mobile QA screenshots.
 - **E2E remains UNKNOWN:** the status response did not return an executed E2E result. Two migration regression cases were added to the deployed test definitions, but their presence is not evidence of execution or passage.
 - **Residual risk:** an interrupted import can still leave identical, owner-scoped task records outside the active index. Retry/recovery must be executed against the deployed AppDeploy database before production approval.
+
+
+## v11 hardening audit — 2026-10-18
+
+- **ESTABLISHED from deployed source:** client backup validation now validates the complete task shape consumed by the UI, task/comment/attachment identity formats, scheduling pairs, duplicate task IDs, required project/member fields, the preference shape, item caps, and serialized-size limits. The server snapshot validator enforces the matching schema before accepting snapshots.
+- **ESTABLISHED from deployed source:** signed-in local workspace keys now use an encoded account ID rather than only a 32-bit hash. Legacy-key migration is scoped to the previously recorded owner, successful scoped writes precede legacy cache cleanup, and the generic shared snapshot key is no longer duplicated for signed-in workspace writes.
+- **ESTABLISHED from deployed source:** the frontend records the active identity synchronously at auth transitions and checks it around asynchronous task list, task-mode, snapshot, task-write, migration, restore, and backup-import operations. This reduces the risk that a delayed response from one account changes another account's visible UI state; it is not a substitute for two-account E2E proof.
+- **Live browser smoke check:** v11 rendered the workspace shell, global search, API-online indicator, and Board/List/Calendar/Projects/Team/Files/Reports/Settings. The read-only check reported no console/page/network errors. AppDeploy also produced fresh desktop and mobile QA screenshots.
+- **Test definitions:** the deployed test file has four focused workflows and exactly one `sanity: true` workflow. These are test definitions, **not** evidence of executed E2E passage.
+- **UNKNOWN / OPEN:** AppDeploy still did not return an executed E2E result. Sign-in/out, malformed backup rejection in the browser, delayed-request account switching, cloud persistence, task CRUD, migration retry/recovery, stale-write conflicts, and independent-account isolation still require executed results. Production approval remains blocked.
+
+### Remaining product boundaries found in the audit
+
+- Team role/responsibility fields are sample/local workspace data, not real memberships or server-enforced permissions.
+- Files lists names and metadata only. Binary upload, download, access-controlled sharing, preview, and malware scanning are not implemented.
+- Reports are derived from the current workspace snapshot and seeded sample data, not external analytics.
+- Delivered reminders/email notifications and production backup/restore operations are not implemented or verified.
+- Track A, the GitHub React/TanStack application, remains a separate implementation and is still configured as a preview with auth and database provisioning disabled. The AppDeploy release does not synchronize Track A.
