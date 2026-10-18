@@ -72,6 +72,24 @@ describe("normalized Taskora domain integration (embedded PGlite only)", () => {
     else process.env.TASKORA_TEST_DB_MIGRATION_LOADER = priorMigrationLoader;
   });
 
+  it("creates the caller personal workspace idempotently without accepting a client ID", async () => {
+    const userId = "personal-user-" + randomUUID();
+    const first = await domain.getOrCreatePersonalWorkspace(userId);
+    const second = await domain.getOrCreatePersonalWorkspace(userId);
+    assert.deepEqual(second, first);
+    assert.equal(first.kind, "personal");
+    const workspaces = await sql.query<{ count: number }>(
+      "SELECT count(*)::int AS count FROM taskora_workspaces WHERE id = $1 AND owner_user_id = $2",
+      [first.workspaceId, userId],
+    );
+    const memberships = await sql.query<{ role: string; status: string }>(
+      "SELECT role, status FROM taskora_workspace_memberships WHERE workspace_id = $1 AND user_id = $2",
+      [first.workspaceId, userId],
+    );
+    assert.equal(workspaces[0].count, 1);
+    assert.deepEqual(memberships, [{ role: "owner", status: "active" }]);
+  });
+
   it("creates projects and tasks, reads them back, filters, and paginates without duplicates", async () => {
     const ws = await seedWorkspace();
     const project = await domain.createProject(ws.owner, {
