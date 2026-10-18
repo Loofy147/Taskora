@@ -96,7 +96,7 @@ jobs:
             const migrationResult = await pool.query("SELECT name FROM _migrations ORDER BY name");
             assert.deepEqual(
               migrationResult.rows.map((row) => row.name),
-              ["0001_auth.sql", "0001_workspace_storage.sql"],
+              ["0001_auth.sql", "0001_workspace_storage.sql", "0002_normalized_domain.sql"],
               "auth-on migrations must be recorded exactly once",
             );
 
@@ -110,6 +110,11 @@ jobs:
               [
                 "account",
                 "session",
+                "taskora_comments",
+                "taskora_projects",
+                "taskora_subtasks",
+                "taskora_task_assignees",
+                "taskora_tasks",
                 "taskora_workspace_events",
                 "taskora_workspace_memberships",
                 "taskora_workspace_state",
@@ -124,7 +129,16 @@ jobs:
               "SELECT conname FROM pg_constraint " +
               "WHERE conrelid = 'public.taskora_workspace_memberships'::regclass AND contype = 'c'",
             );
-            assert.ok(constraints.rows.length >= 1, "workspace membership role/kind constraints must be installed");
+            assert.ok(
+              constraints.rows.some((row) => row.conname === "taskora_membership_status_check"),
+              "active/revoked membership constraint must be installed",
+            );
+            const domainForeignKeys = await pool.query(
+              "SELECT count(*)::int AS count FROM pg_constraint " +
+              "WHERE conrelid IN ('public.taskora_tasks'::regclass, 'public.taskora_task_assignees'::regclass) " +
+              "AND contype = 'f'",
+            );
+            assert.ok(domainForeignKeys.rows[0].count >= 4, "normalized task and assignee workspace foreign keys must be installed");
             console.log("PASS: auth-on PostgreSQL migrations applied, re-applied idempotently, and schema-checked.");
           } finally {
             await pool.end();
