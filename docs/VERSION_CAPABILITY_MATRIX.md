@@ -16,8 +16,8 @@
 
 - **App ID:** taskora-ube0f6
 - **URL:** https://taskora-ube0f6.v2.appdeploy.ai/
-- **Current revision:** 1792338457910 (v14; Settings order and cloud-status guard deployed, authenticated E2E unverified)
-- **Observed result:** v12 deployment status was ready, with live smoke checks for anonymous API denial and malformed backup relationship/duplicate-ID rejection. v13 is ready and its QA snapshot reports no frontend/backend/network errors. A read-only live browser check confirmed the Settings primary controls are visible and the three advanced disclosures are collapsed by default. The four-test definition has one sanity case, but AppDeploy did not return an executed E2E result.
+- **Current revision:** 1792339899173 (v16 local-first reliability batch; cloud persistence explicitly deferred; executed E2E verdict not returned)
+- **Observed result:** the v16 deployment reports ready; its QA snapshot has empty frontend/network error arrays and no frontend/backend errors. The five current test definitions have one sanity case, but AppDeploy did not return an executed E2E result. Earlier v12–v14 smoke checks remain historical evidence only.
 - **Root cause:** an early effect dependency array referenced currentUserId before its const declaration, triggering a temporal-dead-zone error while rendering. The declaration was moved above its first use.
 - **Still unknown:** the AppDeploy status response did not return an executed E2E result. Real sign-in, migration, data persistence, concurrent edits and account isolation remain unverified end to end.
 - **Track boundary:** v13 is the AppDeploy Track B source. It is not the GitHub application deployed, and AppDeploy-only source changes do not automatically synchronize into GitHub `main`.
@@ -29,13 +29,13 @@
 | App entry and React startup | Implemented; v9 screenshot shows the normal shell; error boundary and boot fallback added | V0.1 Reliability | Clean/failed start, direct URL reload, desktop + mobile screenshots, JS/page errors |
 | Navigation, board, list, calendar | Implemented; render checked, not full E2E verified | V0.1 Reliability | Visit every navigation entry on mobile/desktop; assert no blank, clipped, or dead-end screen |
 | Browser storage resilience | Startup guards remain; v11 scopes signed-in workspace writes and owner-guards async response state updates; restricted-storage and account-switch behavior still lack executed E2E | V0.1 Reliability | Storage API denied/throws, sign-out remains possible, delayed requests cannot change another account's UI, and legacy-key migration is safe |
-| Task create/edit/status/delete | UI and protected API routes exist; E2E not verified | V0.2 Personal workflow | Create → update → move → comment → reload → delete; assert persistence and visible failure states |
+| Task create/edit/status/delete | Local UI flows are available in v16; full executed E2E result not returned. Cloud CRUD activation is deferred. | V0.2 Personal workflow | Create → update → move → comment → reload → delete locally; assert browser persistence and visible failure states |
 | Due dates and timed tasks | Date UI and optional start/end fields exist; server validates HH:mm and end-after-start; E2E not verified | V0.2 Personal workflow | Valid, incomplete, equal, reversed and malformed time ranges; calendar/agenda after reload |
-| JSON backup/export/restore | v11 client and server validators enforce task shape, nested fields, preferences, IDs, caps and serialized-size limits; actual browser round-trip remains unverified | V0.2 Personal workflow | Valid round-trip, malformed and oversized backup rejection, workspace unchanged on rejection, explicit restore confirmation |
-| Individual per-task cloud records | Protected per-task list/create/update/delete routes and revisions exist; live DB workflow not E2E verified | V0.3 Durable data | Real sign-in, create/update/delete, refresh/re-login persistence, stale revision conflicts |
-| Snapshot-to-task migration | v10 merges saved and submitted snapshot tasks, rejects same-ID divergent content, preflights existing task records, and blocks activation on workspace revision change; E2E unverified | V0.3 Durable data | Execute preservation/conflict/revision-race tests, verify idempotent retry and ownership-safe recovery, prove zero data loss |
+| JSON backup/export/restore | Schema/relationship validation exists; browser round-trip remains to be verified by the current v16 tests | V0.2 Personal workflow | Export and import round-trip, malformed/oversized rejection, workspace unchanged on rejection, explicit restore confirmation |
+| Individual per-task cloud records | Deferred/disabled in v16 UI; backend route code remains but is not a supported current save path | V0.3 Durable data | Only reactivate after real sign-in, create/update/delete, refresh/re-login persistence and stale-revision conflicts pass E2E |
+| Snapshot-to-task migration | Deferred/disabled in v16 UI; source implementation remains unverified end to end | V0.3 Durable data | Reactivation requires preservation/conflict/revision-race tests, idempotent retry and ownership-safe recovery with zero data loss |
 | Account-specific browser data | v11 uses encoded owner IDs in local keys, scopes signed-in writes, migrates legacy keys only with an owner match, and guards many async responses; runtime isolation remains unproven | V0.3 Durable data | Accounts A/B in one browser, delayed A responses while B is active, sign-out/sign-in/reload, and no cross-account data bleed |
-| Role/responsibility fields | Editable local/sample profiles and workload indicators exist; no authorization controls | V0.4 Team workspaces | Persist real members, invite/accept/revoke, enforced owner/admin/member/viewer capability matrix |
+| Role/responsibility fields | Editable browser-local sample/member fields and workload indicators; not authorization, memberships or real accounts | V0.4 Team workspaces | Improve local ownership UX first; real members/invite/accept/revoke and enforced permissions require a separate secured milestone |
 | Shared workspace and invitations | Not implemented | V0.4 Team workspaces | Server-side membership, tenant authorization, invite expiry/revocation, negative cross-workspace tests |
 | Projects, milestones, task dependencies | Sample projects exist; full lifecycle/dependencies are incomplete | V0.5 Planning | Project CRUD, milestone ownership, dependency cycle prevention, blocked/unblocked transitions |
 | Subtasks and assignment workflow | Some UI/source capability may exist by track; AppDeploy sharing/authoritative membership not verified | V0.5 Planning | Parent-child consistency, assignment boundaries, subtasks visible in board/list/calendar |
@@ -141,3 +141,20 @@ The current Track B revision is `1792327799498`. An unauthenticated live browser
 ## v14 cloud-status and Settings follow-up — 2026-10-18
 
 Revision `1792338457910` fixes the initial `remoteRevision = 0` ambiguity. A valid revision-0 response means no snapshot has ever been saved; a failed or invalid response now renders the revision as `Unknown` with retry guidance. Live unauthenticated browser inspection confirms the normal account/backup panels precede the collapsed advanced panels. A QA-fault test for `GET /api/workspace` HTTP 503 has been added, but its execution result was not returned. Authenticated persistence, migration recovery and account A/B isolation remain **UNKNOWN / OPEN**.
+
+
+## v16 local-first reliability update — 2026-10-18
+
+**Revision:** `1792339899173`; deployed status `ready`.
+
+| Capability | v16 observed/current state | Release evidence still required |
+|---|---|---|
+| Task forms and data integrity | Validation for title/description limits, actual date keys, paired and ordered times, tag count/length and comment caps exists in deployed source | Execute positive and negative create/edit workflows; verify rejected writes do not change current state |
+| Schedule collision awareness | A same-assignee, same-date overlap asks for confirmation before save | Test both cancel and deliberate override paths, including edits to an existing task |
+| List navigation and filters | Status and priority filters plus Clear filters are implemented | Execute combined search/filter flows on desktop and mobile |
+| Browser-local task workflow | Task state remains browser-local and no longer depends on cloud-mode availability | Verify create/edit/status/comment/delete across reload; confirm backup recovery after local-storage loss |
+| Portable backup | JSON export/import with schema validation and confirmation is the supported portability mechanism | Execute round-trip plus malformed and oversized backup rejection |
+| Team roles/responsibilities | Role and responsibility fields remain editable local workspace data; no server-enforced permissions or actual invitations | Verify edits persist locally; do not represent fields as an authorization model |
+| Cloud snapshot sync and task-level storage | Explicitly deferred/disabled in the v16 UI; backend source code remains but current app does not support these as a save path | Re-enable only if required and after authenticated E2E read/write, restore, account isolation, conflict and recovery tests pass |
+
+**Evidence limit:** AppDeploy returned no frontend/backend/network errors in the QA status snapshot, but did not return an executed E2E verdict. The updated tests are definitions, not proof of passage. Track A and Track B remain separate.
