@@ -1,6 +1,6 @@
 import { getRequest } from "@tanstack/react-start/server";
-import { gateIdentityEnabled } from "./gate-identity.server";
 import { auth, authConfigured } from "./server";
+import { isRuntimeAuthEnabled } from "../runtime-mode.ts";
 
 /**
  * Server-side session resolution (server-only).
@@ -57,7 +57,7 @@ export type VerifiedUser = { id: string; email: string | null };
 export async function getSessionUser(
   bearerToken?: string,
 ): Promise<VerifiedUser | null> {
-  if (!authConfigured && !gateIdentityEnabled()) return null;
+  if (!authConfigured) return null;
   const request = getRequest();
   if (!request) return null;
   let headers = request.headers;
@@ -81,14 +81,32 @@ export async function getSessionUser(
  *   read/write everyone's rows.
  * - Auth disabled + no database -> the shared dev user id.
  */
+export class AuthConfigurationError extends Error {
+  readonly status = 503;
+  readonly code = "AUTH_CONFIGURATION_REQUIRED";
+
+  constructor() {
+    super("Authentication is enabled but the Vercel auth/database configuration is incomplete.");
+    this.name = "AuthConfigurationError";
+  }
+}
+
 export async function requireUserId(bearerToken?: string): Promise<string> {
-  if (!authConfigured && !gateIdentityEnabled()) {
+  if (!authConfigured) {
+    const authEnabled = isRuntimeAuthEnabled({
+      authFlag: process.env.VITE_AUTH_ENABLED,
+      isVercelRuntime: process.env.VERCEL === "1",
+    });
+    if (authEnabled) throw new AuthConfigurationError();
     if (databaseConfigured) {
       throw new Error(
-        "Auth is disabled (VITE_AUTH_ENABLED=false) but DATABASE_URL is set — " +
-          "refusing to fall back to the shared dev user against a real database.",
+        "Auth is disabled but DATABASE_URL is set — refusing to fall back to a shared development user against a real database.",
       );
     }
+    // Browser-local demo mode may use a local development identity, but a
+    // deployed Vercel function must never turn an anonymous visitor into a
+    // shared server-side actor.
+    if (process.env.VERCEL === "1") throw new UnauthorizedError();
     return DEV_USER_ID;
   }
   const user = await getSessionUser(bearerToken);
