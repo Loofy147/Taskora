@@ -1,34 +1,35 @@
 # Taskora implementation evidence ledger
 
 **Updated:** 2026-10-18  
-**Latest full CI:** [run 39153304648](https://github.com/Loofy147/Taskora/actions/runs/39153304648) — all jobs passed at source commit `7a8791ad51e43c52bdbc8a229761c530c10f952b`  
-**Baseline:** `main` at `0accd42982a2b4809f9d905db569e5e21887756e`  
-**Implementation branch:** `feat/domain-contracts-authz-migration-ci`  
-**Pull request:** [#18](https://github.com/Loofy147/Taskora/pull/18) — open; not merged
+**Canonical `main` source:** [`34469fa95bbcf6fb5ec674c4eb93a0e31ca074a0`](https://github.com/Loofy147/Taskora/commit/34469fa95bbcf6fb5ec674c4eb93a0e31ca074a0) — normalized service foundation  
+**Post-merge CI:** [run 39154671894](https://github.com/Loofy147/Taskora/actions/runs/39154671894) — tests, typecheck, lint, build, and auth-on PostgreSQL migration verification passed  
+**Current repair:** [PR #19](https://github.com/Loofy147/Taskora/pull/19) — auth entry points; open, not merged  
+**PR code CI:** [run 39157670515](https://github.com/Loofy147/Taskora/actions/runs/39157670515) — all jobs passed at implementation commit `1a5cd049cbd268918dce0f6bc6433ed25d4b5764`
 
-This ledger separates code presence and automated verification from claims that require a real authenticated deployment.
+This ledger distinguishes source-code and CI evidence from live authentication, durable persistence, and release acceptance. A Vercel deployment marked `Ready` is not by itself a production-readiness result.
+
+## Verified observations
 
 | Capability / claim | Status | Evidence boundary |
 |---|---|---|
-| Existing architecture baseline | ESTABLISHED | Repository inspection: the current main UI state remains local-first; the existing cloud bridge is a whole-workspace snapshot, not the normalized task service described below. |
-| Normalized entity contracts | CI PASS | `src/lib/domain-contracts.ts` validates task/project/membership/subtask/comment records, date-only deadlines, offset-bearing instants, scheduling intervals, entity versions, and strict mutation inputs. |
-| Cross-entity invariants | CI PASS | Contract tests cover project/task workspace scope, active same-workspace creators and assignees, comment authors, subtask parent references, unique IDs/memberships, and exactly one active owner in represented workspaces. |
-| Role/capability matrix | CI PASS | Explicit Owner/Admin/Member/Viewer policy and tests. The matrix is policy logic, not authentication by itself. |
-| Normalized PostgreSQL schema | CI PASS | `migrations/0002_normalized_domain.sql` adds projects, tasks, task-assignee links, subtasks, comments, membership status/revocation fields, foreign keys, checks, and indexes. The run applied migrations to disposable PostgreSQL, reapplied idempotently, and verified migration records/tables/constraints. |
-| Transaction API for database adapters | CI PASS | `src/lib/db.ts` exposes atomic transactions for Neon/PostgreSQL and PGlite; rollback behavior is exercised in integration tests. Nested transactions fail explicitly. |
-| Normalized task/project service | CI PASS in embedded PGlite | `src/lib/taskora-domain.server.ts` implements idempotent personal-workspace bootstrap; create/list projects; create/get/list/update/archive tasks; active-membership authorization; same-workspace project/assignee checks; keyset pagination; and optimistic-version conflicts. Integration tests cover allowed and denied actions, revoked assignees, rollback, cross-workspace IDs, and stale versions. |
-| Authenticated server-function boundary | CI PASS | `src/lib/domain-data.ts` wraps operations in `authMiddleware` and derives the actor from verified `context.userId`; actor IDs and roles are not accepted as request authority. |
-| Latest full automated CI | PASS | Run [39153304648](https://github.com/Loofy147/Taskora/actions/runs/39153304648): tests, TypeScript, lint, production build, and the separate real-PostgreSQL migration job all succeeded at `7a8791ad51e43c52bdbc8a229761c530c10f952b`. |
-| Existing UI wired to normalized service | NOT IMPLEMENTED | The new service and authenticated functions are additive; the existing task/project UI has not yet been switched to them. Do not infer UI-backed durable persistence from service tests. |
-| Real Better Auth browser lifecycle | NOT RUN | CI migrations verify schema creation only. Sign-in/sign-out, session expiry/refresh, reauthentication, and browser cookie behavior against staging remain unverified. |
-| Two-account deployed E2E | NOT RUN | PGlite tests prove service-level isolation for separately seeded workspace identities, not end-to-end isolation through deployed HTTP/browser sessions using two real accounts. |
-| Live configured staging/production persistence | NOT VERIFIED | CI used a disposable PostgreSQL service. No external deployment secrets or customer database were touched. |
-| AppDeploy deployment | NONE | No deployment was used for this implementation increment. |
-| Cloud snapshot synchronization | DEFERRED | Not a primary objective; do not expand this work until the core service and real-world verification justify it. |
+| Canonical source deployed | ESTABLISHED | Vercel deployment metadata reports production target, framework `tanstack-start`, repository `Loofy147/Taskora`, branch `main`, and commit `34469fa95bbcf6fb5ec674c4eb93a0e31ca074a0`. Production alias: [taskora-omega-seven.vercel.app](https://taskora-omega-seven.vercel.app/). |
+| Production page renders | EXPERIMENTALLY_SUPPORTED | Anonymous browser scrape returned HTTP 200 and the Taskora shell rendered. The dashboard screenshot reported 43 CDN requests, 12 function invocations, and 0% error rate at capture time; these counters do not prove functional correctness. |
+| UI persistence mode | EXPERIMENTALLY_SUPPORTED | Live Settings explicitly states the workspace is stored locally by default, shows cloud status `Unauthorized`, and says cloud persistence requires authenticated sign-in and a working server database. The page also labels itself as local prototype data. |
+| Local task CRUD | EXPERIMENTALLY_SUPPORTED | In an isolated test-browser session, one uniquely named disposable task was created, edited, moved to `In Progress`, retained after a page reload, then deleted. The visible task count returned to 15. This demonstrates browser-local state only, not server persistence; no user data was changed. |
+| Baseline auth routes | CONTRADICTED | Before PR #19, live `/login` and `/api/auth/get-session` probes both returned HTTP 404. The checked-in generated route tree at the production source registered only `/`. |
+| Auth entrypoint repair source | CI PASS | PR #19 adds `src/routes/api/auth/$.ts`, `src/routes/login.tsx`, session-aware sign-in controls, the generated route registration, and static regression tests. The implementation CI run passed. |
+| PR preview deployment | READY; browser verification BLOCKED | Vercel's GitHub bot reports the preview as Ready: [PR preview](https://taskora-git-fix-taskora-auth-e-66aeb5-djangos-projects-996fd933.vercel.app/). Anonymous checks redirect to Vercel's deployment-protection login, so the preview route results were not observed. Do not infer they passed from the Ready badge. |
+| Vercel runtime/config diagnostics | NOT VERIFIED | The connected Vercel API returned access-denied/not-found responses for runtime diagnostics and environment metadata. No environment values were read or changed. |
+| Normalized task/project schema and service | CI PASS | `migrations/0002_normalized_domain.sql`, `src/lib/taskora-domain.server.ts`, and `src/lib/taskora-domain.server.integration.test.ts` verify normalized entities, transactional operations, workspace authorization, keyset pagination, optimistic-version conflicts, archiving, and PGlite/PostgreSQL behavior. |
+| Existing task UI wired to normalized CRUD | NOT IMPLEMENTED | The normal task board still uses the local Zustand store. The normalized server functions are additive and are not yet the backing store for task edits. |
+| Real sign-in/sign-out lifecycle | NOT RUN | No real provider flow was completed. Session cookies, callback routing, expiry/refresh, and reauthentication still require browser verification. |
+| Cloud persistence and two-account isolation | NOT VERIFIED | No authenticated cloud read/write was proven through the live browser. PGlite service tests are not a substitute for two-account deployed E2E. |
+| Production release acceptance | HOLD | Deployment status is `Ready`, but authentication, server persistence, account isolation, and recovery gates remain unverified. No production deploy was manually triggered for PR #19. |
 
 ## Next gated work
 
-1. Add or complete browser tests against an explicitly disposable authenticated staging deployment: sign-in, session lifecycle, two real accounts, cross-workspace read/write denial, and concurrent version conflicts.
-2. Integrate the existing UI behind a controlled rollout boundary, preserving local-first state until API-backed read/write, failure handling, recovery, and data migration pass acceptance tests.
-3. Complete team membership lifecycle and permission enforcement (invites, revocation, owner transfer, last-owner invariant) before claiming complete collaboration.
-4. Then proceed to file handling, delivered notifications, and automations. Do not deploy to customer traffic until the applicable gates are executed and recorded.
+1. Obtain authorized access to the Vercel `Django's projects` team and `taskora` project so protected-preview behavior, environment-variable presence (names only), and runtime diagnostics can be checked without exposing secret values.
+2. On the preview, verify `/login`, `/api/auth/get-session`, provider sign-in/callback, and sign-out. Confirm that required production environment settings and a durable database are configured before enabling cloud persistence.
+3. With disposable accounts, verify snapshot initialize/load/save, reload persistence, two-account isolation, stale-write conflict behavior, backup/restore, and failure recovery.
+4. Integrate task/project UI reads and writes with the normalized service only behind tested migration and recovery paths. Preserve the local prototype until the complete candidate is verified.
+5. Keep production release on HOLD until authenticated browser evidence is recorded. Batch the complete candidate and reserve production deployment for that release gate.
