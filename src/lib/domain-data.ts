@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import {
   ArchiveTaskInputSchema,
+  CreatePersonalWorkspaceInputSchema,
   CreateProjectInputSchema,
   CreateTaskInputSchema,
   GetTaskInputSchema,
@@ -13,12 +14,19 @@ import {
   archiveTask,
   createProject,
   createTask,
+  getOrCreatePersonalWorkspace,
   getTask,
   listProjects,
   listTasks,
   updateTask,
 } from "./taskora-domain.server";
 
+
+/** Create the caller's canonical personal workspace explicitly; no client ID is accepted. */
+export const createOrGetTaskoraPersonalWorkspace = createServerFn({ method: "POST" })
+  .validator(CreatePersonalWorkspaceInputSchema)
+  .middleware([authMiddleware])
+  .handler(({ context }) => getOrCreatePersonalWorkspace(context.userId));
 
 /** The request's actor identity is derived from verified auth middleware, never request data. */
 export const listTaskoraProjects = createServerFn({ method: "GET" })
