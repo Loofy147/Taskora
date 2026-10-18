@@ -16,11 +16,11 @@
 
 - **App ID:** taskora-ube0f6
 - **URL:** https://taskora-ube0f6.v2.appdeploy.ai/
-- **Current revision:** 1792326417562 (v12; render-checked, integrity guardrails smoke-tested, E2E unverified)
-- **Observed result:** v12 deployment status is ready. AppDeploy produced fresh desktop/mobile QA screenshots with no reported frontend/backend/network errors. Live smoke checks verified anonymous API denial and rejection of malformed backup relationship/duplicate-ID cases, preserving the eight sample tasks. The four-test definition has one sanity case, but AppDeploy still did not return an executed E2E result.
+- **Current revision:** 1792327799498 (v13; Settings usability smoke-tested, authenticated E2E unverified)
+- **Observed result:** v12 deployment status was ready, with live smoke checks for anonymous API denial and malformed backup relationship/duplicate-ID rejection. v13 is ready and its QA snapshot reports no frontend/backend/network errors. A read-only live browser check confirmed the Settings primary controls are visible and the three advanced disclosures are collapsed by default. The four-test definition has one sanity case, but AppDeploy did not return an executed E2E result.
 - **Root cause:** an early effect dependency array referenced currentUserId before its const declaration, triggering a temporal-dead-zone error while rendering. The declaration was moved above its first use.
 - **Still unknown:** the AppDeploy status response did not return an executed E2E result. Real sign-in, migration, data persistence, concurrent edits and account isolation remain unverified end to end.
-- **Track boundary:** this v9 revision is AppDeploy source. It is not the GitHub application deployed, and it has not been synchronized into GitHub source.
+- **Track boundary:** v13 is the AppDeploy Track B source. It is not the GitHub application deployed, and AppDeploy-only source changes do not automatically synchronize into GitHub `main`.
 
 ## Capability matrix
 
@@ -131,3 +131,8 @@ For AppDeploy v11 (`1792325012924`): anonymous `GET /api/health` returned `200 a
 ## v12 integrity follow-up — 2026-10-18
 
 The deployed validator now enforces unique project/member IDs, unique comment/attachment IDs within each task, and valid task project/assignee references. Task create/update endpoints enforce the same project/assignee references. Live checks confirmed duplicate-project, dangling-reference, duplicate-comment-ID and duplicate-attachment-ID backups are rejected without replacing the eight sample tasks. Anonymous and invalid-token requests to protected API reads returned HTTP 401 JSON. The actual two existing user accounts were not accessed; cross-account isolation and authenticated cloud workflows remain **UNKNOWN / OPEN**.
+
+
+## v13 Settings usability smoke — 2026-10-18
+
+The current Track B revision is `1792327799498`. An unauthenticated live browser reached Settings and confirmed `Account & cloud sync` and `Local backup` are visible while `Advanced task storage`, `System status`, and `Feature availability` start collapsed. AppDeploy reported ready with empty frontend/backend/network error lists; no executed E2E result was returned. This evidence changes the Settings render/usability status only. Authenticated persistence, migration recovery and two-account isolation remain **UNKNOWN / OPEN**.
