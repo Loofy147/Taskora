@@ -119,3 +119,10 @@ Only after the core product is reliable. Require bounded permissions, traceable 
 ## v11 audit addendum — 2026-10-18
 
 The deployed AppDeploy revision is `1792325012924`. A read-only live browser smoke check passed for the visible shell and eight navigation views; AppDeploy's QA snapshot reported no frontend/backend/network errors and supplied desktop/mobile screenshots. These checks establish rendering only. No executed E2E result was returned, so the new four-case suite and the authentication, persistence, migration-recovery, conflict, and account-isolation gates remain **UNKNOWN / OPEN**. Do not claim production readiness.
+
+
+## Live smoke evidence addendum — 2026-10-18
+
+For AppDeploy v11 (`1792325012924`): anonymous `GET /api/health` returned `200 application/json`; the protected task-mode, task-list, and workspace endpoints returned `401 application/json` both with no token and with a deliberately invalid bearer token. An incomplete schema-v1 backup was rejected without changing the eight sample tasks. A uniquely named temporary local task survived reload with its 2026-10-19 09:30–10:00 schedule and was then deleted; the eight sample tasks remained.
+
+**Evidence boundary:** these are live anonymous/browser-local checks, not authenticated E2E. The available browser session is logged out. Although the user confirms that two accounts already exist, neither session was available for direct testing; cross-account isolation and authenticated persistence therefore remain **UNKNOWN / OPEN**.
