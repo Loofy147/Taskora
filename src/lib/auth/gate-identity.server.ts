@@ -5,6 +5,7 @@ import {
   type JWTVerifyGetKey,
 } from "jose";
 import { env, isWorkspacePreview } from "../env.server.ts";
+import { isRuntimeAuthEnabled } from "../runtime-mode.ts";
 
 export const GATE_IDENTITY_HEADER = "x-grok-identity";
 export const GATE_JWKS_PATH = "/__gate/identity-key";
@@ -27,7 +28,10 @@ export type GateJwks = { keys: JWK[] };
 export type JwksFetch = (url: string) => Promise<GateJwks | null>;
 
 export function gateIdentityEnabled(): boolean {
-  return env("VITE_AUTH_ENABLED") !== "false";
+  return isRuntimeAuthEnabled({
+    authFlag: env("VITE_AUTH_ENABLED"),
+    isVercelRuntime: env("VERCEL") === "1",
+  });
 }
 
 export function gateTokenAudience(): string {
