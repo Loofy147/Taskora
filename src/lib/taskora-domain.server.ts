@@ -351,10 +351,10 @@ export async function listTasks(actorInput: string, rawInput: unknown): Promise<
 export async function updateTask(actorInput: string, taskIdInput: string, rawInput: unknown): Promise<TaskRecord> {
   const actorUserId = requireActor(actorInput);
   const input = parseInput(UpdateTaskInputSchema.parse.bind(UpdateTaskInputSchema), rawInput);
-  const taskId = parseInput(GetTaskInputSchema.parse.bind(GetTaskInputSchema), {
-    workspaceId: input.workspaceId,
-    taskId: taskIdInput,
-  }).taskId;
+  if (taskIdInput !== input.taskId) {
+    throw new TaskoraDomainError(400, "INVALID_INPUT", "Route task ID must match the validated request task ID.");
+  }
+  const taskId = input.taskId;
   const sql = await getSql();
 
   return sql.transaction(async (tx) => {
