@@ -3,7 +3,7 @@
 **Reviewed:** 2026-10-18  
 **App:** `taskora-ube0f6`  
 **URL:** https://taskora-ube0f6.v2.appdeploy.ai/  
-**Latest deployed source revision (render-checked):** `1792325012924` (v11; E2E result unreturned)  
+**Latest deployed source revision (render-checked):** `1792326417562` (v12; E2E result unreturned)  
 **Release state:** staging only; not approved for production use.
 
 ## Scope and identity
@@ -152,3 +152,12 @@ Against the live v11 revision `1792325012924`, a read-only API check used the em
 In a separate unauthenticated audit-browser profile, an incomplete schema-v1 workspace backup was rejected and all eight original sample tasks remained unchanged. A unique temporary local task was created with due date 2026-10-19 and time range 09:30–10:00, verified after reload in Calendar, then deleted; after reload the original eight sample tasks remained. These checks validate anonymous auth denial, malformed-import rejection, and browser-local CRUD/scheduling only.
 
 **Still OPEN:** the remote browser has no authenticated Taskora session. The two existing user accounts were not accessed. Cross-account isolation, authenticated cloud snapshot persistence, per-task cloud CRUD, migration/retry/conflict recovery, and delayed-response behavior remain unverified until those existing accounts can be used in an authorized browser session. No valid token or account credentials were available or requested.
+
+
+## v12 relational-integrity follow-up — 2026-10-18
+
+- **Deployed source:** revision `1792326417562` is `ready`; fresh desktop/mobile QA screenshots were generated and the QA snapshot reports no frontend, backend or network errors.
+- **ESTABLISHED — source:** client and server snapshot validation reject duplicate project/member IDs, duplicate comment/attachment IDs within a task, and tasks whose project or assignee does not exist. Task-level create/update routes check project and assignee references; task listing fails closed for orphaned stored references. Individual task API responses are validated separately from whole-workspace relationship checks.
+- **ESTABLISHED — live browser:** malformed backup containing duplicate project IDs was rejected; a backup with a dangling project/assignee reference was rejected; duplicate comment-ID and duplicate attachment-ID backup payloads were rejected. The original eight sample tasks remained intact after these attempts. (A duplicate-member payload was attempted, but its browser automation result was not conclusive; the source validator check is established.)
+- **ESTABLISHED — live API boundary:** `GET /api/health` returned `200 application/json`; anonymous and deliberately invalid bearer-token requests to `GET /api/task-mode`, `GET /api/tasks`, and `GET /api/workspace` returned `401 application/json`.
+- **UNKNOWN / OPEN:** authenticated testing with the two existing accounts has not been performed because the browser session available to the audit is logged out and does not expose a user-controllable session link. Account A/B isolation, authenticated snapshots, task migration, cloud CRUD, and delayed-response switching remain release gates. No production approval.
