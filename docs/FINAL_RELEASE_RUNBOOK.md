@@ -8,7 +8,7 @@
 Before each task, record which implementation is being changed:
 
 - **GitHub source:** `Loofy147/Taskora`, branch/ref/commit, React/TanStack Start, Better Auth and PostgreSQL/PGlite.
-- **AppDeploy staging port:** app ID `taskora-ube0f6`, current deployed source revision `1792327799498` (v13; Settings usability smoke-tested; authenticated E2E unverified), AppDeploy auth and managed key-value database.
+- **AppDeploy staging port:** app ID `taskora-ube0f6`, current deployed source revision `1792338457910` (v14; Settings order and cloud-status guard deployed; authenticated E2E unverified), AppDeploy auth and managed key-value database.
 
 These are separate artifacts. A CI result on GitHub is not an AppDeploy E2E result. An AppDeploy-ready status is not a GitHub source deployment, a real PostgreSQL migration, or a production gate pass.
 
@@ -138,3 +138,8 @@ The remote browser used by this audit is logged out and has no user-controllable
 - **Observed:** a read-only unauthenticated browser inspection reached Settings. `Account & cloud sync` and `Local backup` are visible. `Advanced task storage`, `System status`, and `Feature availability` are collapsed by default; their contents remain accessible through disclosure controls.
 - **Platform status:** AppDeploy reported `ready` with empty frontend, backend and network error lists. No executed E2E result was returned.
 - **Release implication:** this is UI smoke evidence only. Authenticated task CRUD, snapshot round-trip, migration recovery, stale-revision conflicts and two-account isolation remain open. Do not use this as production approval.
+
+
+## v14 cloud-status correctness check — 2026-10-18
+
+The current AppDeploy Track B revision is `1792338457910`. The client no longer equates a default revision value of zero with a successful empty-cloud response: it renders `Unknown` until the latest authenticated workspace read succeeds. The Settings UI now orders account sync and local backup before advanced task storage. A fifth QA test defines a simulated 503 for `GET /api/workspace`; the live deployment status is ready and the unauthenticated Settings smoke check passed, but no executed E2E result was returned. Authenticated cloud persistence and A/B isolation remain release blockers.
