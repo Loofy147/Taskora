@@ -293,6 +293,43 @@ export const CreateTaskInputSchema = z
   })
   .strict();
 
+
+export const CreateProjectInputSchema = z
+  .object({
+    workspaceId: IdentifierSchema,
+    name: TitleSchema,
+    description: DescriptionSchema,
+  })
+  .strict();
+
+export const ListTasksInputSchema = z
+  .object({
+    workspaceId: IdentifierSchema,
+    limit: z.number().int().min(1).max(100).default(50),
+    status: TaskStatusSchema.optional(),
+    priority: TaskPrioritySchema.optional(),
+    projectId: IdentifierSchema.optional(),
+    assigneeId: IdentifierSchema.optional(),
+    search: z.string().trim().max(200).optional(),
+    cursor: z.string().min(1).max(1_000).optional(),
+  })
+  .strict();
+
+export const GetTaskInputSchema = z
+  .object({
+    workspaceId: IdentifierSchema,
+    taskId: IdentifierSchema,
+  })
+  .strict();
+
+export const ArchiveTaskInputSchema = z
+  .object({
+    workspaceId: IdentifierSchema,
+    taskId: IdentifierSchema,
+    expectedVersion: VersionSchema,
+  })
+  .strict();
+
 export const UpdateTaskInputSchema = z
   .object({
     workspaceId: IdentifierSchema,
@@ -427,5 +464,9 @@ export type WorkspaceMembership = z.infer<typeof WorkspaceMembershipSchema>;
 export type SubtaskRecord = z.infer<typeof SubtaskRecordSchema>;
 export type CommentRecord = z.infer<typeof CommentRecordSchema>;
 export type CreateTaskInput = z.infer<typeof CreateTaskInputSchema>;
+export type CreateProjectInput = z.infer<typeof CreateProjectInputSchema>;
+export type ListTasksInput = z.infer<typeof ListTasksInputSchema>;
+export type GetTaskInput = z.infer<typeof GetTaskInputSchema>;
+export type ArchiveTaskInput = z.infer<typeof ArchiveTaskInputSchema>;
 export type UpdateTaskInput = z.infer<typeof UpdateTaskInputSchema>;
 export type WorkspaceDomainSnapshot = z.infer<typeof WorkspaceDomainSnapshotSchema>;
