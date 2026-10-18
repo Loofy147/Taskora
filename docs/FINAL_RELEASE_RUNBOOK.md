@@ -8,7 +8,7 @@
 Before each task, record which implementation is being changed:
 
 - **GitHub source:** `Loofy147/Taskora`, branch/ref/commit, React/TanStack Start, Better Auth and PostgreSQL/PGlite.
-- **AppDeploy staging port:** app ID `taskora-ube0f6`, current deployed source revision `1792326417562` (v12; render-checked and integrity-guardrail smoke-tested; E2E unverified), AppDeploy auth and managed key-value database.
+- **AppDeploy staging port:** app ID `taskora-ube0f6`, current deployed source revision `1792327799498` (v13; Settings usability smoke-tested; authenticated E2E unverified), AppDeploy auth and managed key-value database.
 
 These are separate artifacts. A CI result on GitHub is not an AppDeploy E2E result. An AppDeploy-ready status is not a GitHub source deployment, a real PostgreSQL migration, or a production gate pass.
 
@@ -130,3 +130,11 @@ The remote browser used for the recorded smoke checks was unauthenticated. These
 - [ ] Authenticated snapshot round-trip, task-level migration recovery, per-task CRUD, and stale-revision conflict handling.
 
 The remote browser used by this audit is logged out and has no user-controllable session link, so authenticated two-account tests remain OPEN. v12 is staging-verified only; production remains on HOLD.
+
+
+## v13 Settings usability smoke — 2026-10-18
+
+- **Revision:** `1792327799498` (AppDeploy Track B).
+- **Observed:** a read-only unauthenticated browser inspection reached Settings. `Account & cloud sync` and `Local backup` are visible. `Advanced task storage`, `System status`, and `Feature availability` are collapsed by default; their contents remain accessible through disclosure controls.
+- **Platform status:** AppDeploy reported `ready` with empty frontend, backend and network error lists. No executed E2E result was returned.
+- **Release implication:** this is UI smoke evidence only. Authenticated task CRUD, snapshot round-trip, migration recovery, stale-revision conflicts and two-account isolation remain open. Do not use this as production approval.
