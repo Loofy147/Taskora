@@ -3,7 +3,7 @@
 **Reviewed:** 2026-10-18  
 **App:** `taskora-ube0f6`  
 **URL:** https://taskora-ube0f6.v2.appdeploy.ai/  
-**Latest deployed source revision:** `1792327799498` (v13; Settings usability smoke-tested, authenticated E2E unverified)  
+**Latest deployed source revision:** `1792338457910` (v14; Settings order and cloud-status guard deployed; authenticated E2E unverified)  
 **Release state:** staging only; not approved for production use.
 
 ## Scope and identity
@@ -166,3 +166,14 @@ In a separate unauthenticated audit-browser profile, an incomplete schema-v1 wor
 - **ESTABLISHED — live browser:** malformed backup containing duplicate project IDs was rejected; a backup with a dangling project/assignee reference was rejected; duplicate comment-ID and duplicate attachment-ID backup payloads were rejected. The original eight sample tasks remained intact after these attempts. (A duplicate-member payload was attempted, but its browser automation result was not conclusive; the source validator check is established.)
 - **ESTABLISHED — live API boundary:** `GET /api/health` returned `200 application/json`; anonymous and deliberately invalid bearer-token requests to `GET /api/task-mode`, `GET /api/tasks`, and `GET /api/workspace` returned `401 application/json`.
 - **UNKNOWN / OPEN:** authenticated testing with the two existing accounts has not been performed because the browser session available to the audit is logged out and does not expose a user-controllable session link. Account A/B isolation, authenticated snapshots, task migration, cloud CRUD, and delayed-response switching remain release gates. No production approval.
+
+
+## v14 Settings order and cloud-status guard — 2026-10-18
+
+- **Deployed revision:** `1792338457910`.
+- **USER_REPORTED, pre-fix:** the signed-in Settings screen showed an account as connected while the remote revision read `No saved snapshot` and the status badge showed `Needs attention`.
+- **Source finding:** `No saved snapshot` was rendered whenever the revision state was zero, including before a successful remote read. That conflated an unknown result with a confirmed empty cloud account.
+- **Implemented:** the client now tracks whether the latest workspace read returned a valid response. A checking state shows `Checking…`; a failed/unvalidated read shows `Unknown` plus retry guidance; `No saved snapshot` is shown only after a valid response confirms revision zero. Settings order now puts `Account & cloud sync` and `Local backup` ahead of `Advanced task storage`.
+- **EXPERIMENTALLY_SUPPORTED, limited:** live unauthenticated browser inspection confirmed the visible section order and that the three advanced disclosures start collapsed. AppDeploy reports ready with no frontend/backend/network errors.
+- **Test definition:** a fifth QA case injects a 503 for `GET /api/workspace` and asserts the unknown-state message. AppDeploy did not return an executed E2E result, so this case is **defined, not proven passed**.
+- **Still OPEN:** a real authenticated account must confirm cloud snapshot reads, upload/reload and two-account isolation.
