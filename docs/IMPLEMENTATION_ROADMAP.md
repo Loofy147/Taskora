@@ -119,11 +119,13 @@ Before enabling RLS in production, verify the database engine's security patch l
 
 ## Immediate next action
 
-**Track A:** proceed with Gate 1B, authenticated PostgreSQL staging, only after selecting the actual deployment environment and providing its secrets securely. Validate auth-schema preflight and migrations, then test browser upload/load/restore, failure recovery, reauthentication and two-account isolation.
+**System-level next step:** use [`FULL_SYSTEM_BLUEPRINT.md`](FULL_SYSTEM_BLUEPRINT.md) for the proposed architecture, capability boundaries, domain invariants and release gates. Use [`FULL_SCALE_EXECUTION_BACKLOG.md`](FULL_SCALE_EXECUTION_BACKLOG.md) to select the next dependency-ready batch. The backlog is prepared, not implemented; no item is complete until its test and evidence contract passes.
 
-**Track B:** execute the v16 local-first acceptance workflows in [`APPDEPLOY_STAGING.md`](APPDEPLOY_STAGING.md): task CRUD/reload, invalid-input guardrails, schedule-overlap confirmation, combined list filters/clear, role/responsibility edits, and backup round-trip/rejection. Keep cloud persistence, migration recovery and remote account isolation deferred unless a concrete product requirement justifies reactivation; no authenticated cloud E2E verdict exists.
+**Track A:** the first durable-system gate is a disposable, authenticated PostgreSQL staging environment: confirm real Better Auth sign-in/session lifecycle, auth-schema preflight, migration application/idempotency, browser snapshot recovery and two-account isolation. The shipped repository environment still has auth and database provisioning disabled. Do not expose the snapshot bridge as a production feature on the strength of local PGlite tests alone.
 
-**Release discipline:** prepare one complete release candidate; don't deploy for documentation edits or isolated source changes. Run static/source checks, reconcile docs and regression definitions, and perform one final AppDeploy deployment only when the final candidate is ready.
+**Track B:** continue only as a local-first UX/smoke surface using the v16 acceptance cases in [`APPDEPLOY_STAGING.md`](APPDEPLOY_STAGING.md). Cloud snapshots, auto-sync, and task-level cloud mode remain deferred unless they become an explicit product requirement and can pass an authenticated E2E gate.
+
+**Release discipline:** no deployment for documentation edits or isolated source changes. Batch code, tests, migrations, operational notes and docs into one candidate; inspect executed test transcripts before making a capability or readiness claim.
 
 
 ## Deployment-capacity discipline
