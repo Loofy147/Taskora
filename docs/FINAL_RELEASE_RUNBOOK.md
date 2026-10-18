@@ -8,7 +8,7 @@
 Before each task, record which implementation is being changed:
 
 - **GitHub source:** `Loofy147/Taskora`, branch/ref/commit, React/TanStack Start, Better Auth and PostgreSQL/PGlite.
-- **AppDeploy staging port:** app ID `taskora-ube0f6`, current deployed source revision `1792271940323` (v10; browser render checked; E2E unverified), AppDeploy auth and managed key-value database.
+- **AppDeploy staging port:** app ID `taskora-ube0f6`, current deployed source revision `1792325012924` (v11; browser render checked; E2E unverified), AppDeploy auth and managed key-value database.
 
 These are separate artifacts. A CI result on GitHub is not an AppDeploy E2E result. An AppDeploy-ready status is not a GitHub source deployment, a real PostgreSQL migration, or a production gate pass.
 
@@ -55,6 +55,17 @@ Use a disposable account and unique test records. Run desktop and mobile checks:
 8. Auth expiry/network/database errors and recovery prompts.
 9. Mobile/desktop navigation, forms, keyboard access and empty/error/loading states.
 10. Inspect the E2E test result, logs, network errors and exact deployed source revision.
+
+## 4A. v11 data-integrity and account-switch checks
+
+- [ ] Import malformed task JSON missing required fields; verify it is rejected and the current workspace remains unchanged.
+- [ ] Import valid and oversized backups; verify schema, nested arrays, unique task IDs, time-pair validity and size caps.
+- [ ] With account A requests delayed, switch to account B and confirm no A task/snapshot response changes B's visible state.
+- [ ] Verify local workspace keys are account-scoped and legacy-key migration does not read another owner's prior key.
+- [ ] Validate sign-in/out, snapshot upload/restore, auto-sync, task migration, per-task CRUD and stale revision conflicts with an executed browser test result.
+- [ ] Test two independent accounts and prove no cross-account read/write or UI data bleed.
+
+**Evidence boundary:** v11 rendered and the read-only smoke check found no reported browser errors, but AppDeploy did not return an executed E2E result. Keep production approval on HOLD until the above outcomes are recorded against revision `1792325012924`.
 
 ## 5. Post-deployment acceptance record
 
