@@ -8,7 +8,7 @@
 Before each task, record which implementation is being changed:
 
 - **GitHub source:** `Loofy147/Taskora`, branch/ref/commit, React/TanStack Start, Better Auth and PostgreSQL/PGlite.
-- **AppDeploy staging port:** app ID `taskora-ube0f6`, current deployed source revision `1792325012924` (v11; browser render checked; E2E unverified), AppDeploy auth and managed key-value database.
+- **AppDeploy staging port:** app ID `taskora-ube0f6`, current deployed source revision `1792326417562` (v12; render-checked and integrity-guardrail smoke-tested; E2E unverified), AppDeploy auth and managed key-value database.
 
 These are separate artifacts. A CI result on GitHub is not an AppDeploy E2E result. An AppDeploy-ready status is not a GitHub source deployment, a real PostgreSQL migration, or a production gate pass.
 
@@ -118,3 +118,15 @@ The 2026-10-17 incident showed that AppDeploy can report ready with an empty err
 - [ ] Verify authenticated cloud snapshot save/restore, task migration, retry/reconciliation, per-task CRUD, and revision conflicts.
 
 The remote browser used for the recorded smoke checks was unauthenticated. These green checks do not replace the three open authenticated checks above; production remains on HOLD.
+
+
+## v12 integrity verification record — 2026-10-18
+
+- [x] Source-level client/server validation rejects duplicate project/member IDs and duplicate nested comment/attachment IDs.
+- [x] Source-level snapshot checks and task-level API checks enforce valid project/assignee references.
+- [x] Live backup import rejected duplicate-project IDs, dangling task references, duplicate comment IDs and duplicate attachment IDs; original eight sample tasks remained unchanged.
+- [x] Live API boundary: health returned 200 JSON; protected task-mode/tasks/workspace reads returned 401 JSON with no token and with an invalid bearer token.
+- [ ] Authenticated E2E using both existing accounts: sign in A/B, verify no cross-account reads/writes, and test switching while requests are delayed.
+- [ ] Authenticated snapshot round-trip, task-level migration recovery, per-task CRUD, and stale-revision conflict handling.
+
+The remote browser used by this audit is logged out and has no user-controllable session link, so authenticated two-account tests remain OPEN. v12 is staging-verified only; production remains on HOLD.
