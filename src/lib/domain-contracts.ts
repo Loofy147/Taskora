@@ -350,7 +350,7 @@ export const UpdateTaskInputSchema = z
   })
   .strict()
   .refine(
-    (input) => Object.entries(input).some(([key, value]) => !["workspaceId", "expectedVersion"].includes(key) && value !== undefined),
+    (input) => Object.entries(input).some(([key, value]) => !["workspaceId", "taskId", "expectedVersion"].includes(key) && value !== undefined),
     "At least one task field must be provided for an update.",
   );
 
