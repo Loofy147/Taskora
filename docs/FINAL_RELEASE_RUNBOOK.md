@@ -104,3 +104,17 @@ The 2026-10-17 incident showed that AppDeploy can report ready with an empty err
 - [ ] Record screenshot review, console result, test run ID and source revision in the release evidence.
 
 **Hold rule:** if the normal shell is missing in a screenshot, the sanity E2E result is absent/failed, or page errors remain unexplained, status is **FAIL / HOLD** even when deployment status says ready.
+
+
+## v11 live smoke record — 2026-10-18
+
+- [x] Public health route returns JSON success.
+- [x] Protected task-mode, task-list and workspace GETs reject anonymous requests with HTTP 401.
+- [x] The same protected GETs reject a deliberately invalid bearer token with HTTP 401.
+- [x] Malformed workspace backup is rejected without changing existing local sample tasks.
+- [x] Temporary local task persists across reload with a 2026-10-19 09:30–10:00 schedule, then is deleted; original sample tasks remain.
+- [ ] Sign in with each of the two existing Taskora accounts and record account identity without exposing tokens or other secrets.
+- [ ] Prove account A cannot read or mutate account B data; exercise delayed responses during account switching.
+- [ ] Verify authenticated cloud snapshot save/restore, task migration, retry/reconciliation, per-task CRUD, and revision conflicts.
+
+The remote browser used for the recorded smoke checks was unauthenticated. These green checks do not replace the three open authenticated checks above; production remains on HOLD.
