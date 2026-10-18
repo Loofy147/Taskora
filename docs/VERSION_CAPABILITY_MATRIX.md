@@ -16,8 +16,8 @@
 
 - **App ID:** taskora-ube0f6
 - **URL:** https://taskora-ube0f6.v2.appdeploy.ai/
-- **Current revision:** 1792325012924 (v11; render-checked, E2E unverified)
-- **Observed result:** v11 deployment status is ready. AppDeploy produced fresh desktop/mobile QA screenshots with no reported frontend/backend/network errors; a read-only browser smoke check also found the shell and all eight views visible without reported console/page/network errors. The test file contains four cases (one marked sanity), but no executed E2E result was returned.
+- **Current revision:** 1792326417562 (v12; render-checked, integrity guardrails smoke-tested, E2E unverified)
+- **Observed result:** v12 deployment status is ready. AppDeploy produced fresh desktop/mobile QA screenshots with no reported frontend/backend/network errors. Live smoke checks verified anonymous API denial and rejection of malformed backup relationship/duplicate-ID cases, preserving the eight sample tasks. The four-test definition has one sanity case, but AppDeploy still did not return an executed E2E result.
 - **Root cause:** an early effect dependency array referenced currentUserId before its const declaration, triggering a temporal-dead-zone error while rendering. The declaration was moved above its first use.
 - **Still unknown:** the AppDeploy status response did not return an executed E2E result. Real sign-in, migration, data persistence, concurrent edits and account isolation remain unverified end to end.
 - **Track boundary:** this v9 revision is AppDeploy source. It is not the GitHub application deployed, and it has not been synchronized into GitHub source.
@@ -126,3 +126,8 @@ The deployed AppDeploy revision is `1792325012924`. A read-only live browser smo
 For AppDeploy v11 (`1792325012924`): anonymous `GET /api/health` returned `200 application/json`; the protected task-mode, task-list, and workspace endpoints returned `401 application/json` both with no token and with a deliberately invalid bearer token. An incomplete schema-v1 backup was rejected without changing the eight sample tasks. A uniquely named temporary local task survived reload with its 2026-10-19 09:30–10:00 schedule and was then deleted; the eight sample tasks remained.
 
 **Evidence boundary:** these are live anonymous/browser-local checks, not authenticated E2E. The available browser session is logged out. Although the user confirms that two accounts already exist, neither session was available for direct testing; cross-account isolation and authenticated persistence therefore remain **UNKNOWN / OPEN**.
+
+
+## v12 integrity follow-up — 2026-10-18
+
+The deployed validator now enforces unique project/member IDs, unique comment/attachment IDs within each task, and valid task project/assignee references. Task create/update endpoints enforce the same project/assignee references. Live checks confirmed duplicate-project, dangling-reference, duplicate-comment-ID and duplicate-attachment-ID backups are rejected without replacing the eight sample tasks. Anonymous and invalid-token requests to protected API reads returned HTTP 401 JSON. The actual two existing user accounts were not accessed; cross-account isolation and authenticated cloud workflows remain **UNKNOWN / OPEN**.
