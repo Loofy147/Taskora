@@ -295,6 +295,7 @@ export const CreateTaskInputSchema = z
 
 export const UpdateTaskInputSchema = z
   .object({
+    workspaceId: IdentifierSchema,
     expectedVersion: VersionSchema,
     title: TitleSchema.optional(),
     description: DescriptionSchema.optional(),
@@ -311,7 +312,7 @@ export const UpdateTaskInputSchema = z
   })
   .strict()
   .refine(
-    (input) => Object.entries(input).some(([key, value]) => key !== "expectedVersion" && value !== undefined),
+    (input) => Object.entries(input).some(([key, value]) => !["workspaceId", "expectedVersion"].includes(key) && value !== undefined),
     "At least one task field must be provided for an update.",
   );
 
