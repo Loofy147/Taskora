@@ -6,7 +6,7 @@ import { DatabaseNotConfiguredError, resolveDbSource, type DbSource } from "./ru
 const rawDatabaseUrl =
   typeof process !== "undefined" ? process.env.DATABASE_URL : undefined;
 const databaseUrl =
-  rawDatabaseUrl && rawDatabaseUrl.trim() ? rawDatabaseUrl : undefined;
+  rawDatabaseUrl?.trim() ? rawDatabaseUrl.trim() : undefined;
 
 /**
  * Database selection is deliberately environment-aware:
