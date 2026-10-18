@@ -1,5 +1,6 @@
 import { migrationsForAuthMode, pendingMigrations } from "../../scripts/migration-plan.mjs";
 import { DatabaseNotConfiguredError, resolveDbSource, type DbSource } from "./runtime-mode.ts";
+import { getPostgresPool } from "./postgres-pool.server.ts";
 
 // An empty/whitespace DATABASE_URL (an easy misconfig in deploy UIs) must mean
 // "unset" — otherwise production would silently run on the PGLite fallback.
@@ -66,11 +67,6 @@ const globalRef = globalThis as typeof globalThis & {
  *   interval                     -> Postgres interval text
  * numeric already comes back as a string on both (arbitrary precision).
  */
-const OID_INT8 = 20;
-const OID_DATE = 1082;
-const OID_INTERVAL = 1186;
-const identity = (v: string) => v;
-
 type Run = <T>(text: string, params: unknown[]) => Promise<T[]>;
 
 type Transaction = <T>(run: (tx: Sql) => Promise<T>) => Promise<T>;
@@ -94,13 +90,9 @@ function toSql(run: Run, transaction: Transaction): Sql {
 
 function createPostgresSql(): Promise<Sql> {
   globalRef.__pgSqlPromise__ ??= (async () => {
-    // Regular Postgres driver: node-postgres (`pg`) — works directly with Neon's
-    // pooled endpoint. One pool per process; warm serverless instances reuse it.
-    const { Pool, types } = await import("pg");
-    types.setTypeParser(OID_INT8, Number);
-    types.setTypeParser(OID_DATE, identity);
-    types.setTypeParser(OID_INTERVAL, identity);
-    const pool = new Pool({ connectionString: databaseUrl });
+    if (!databaseUrl) throw new DatabaseNotConfiguredError();
+    // Auth and domain queries share one bounded pool per warm process.
+    const pool = getPostgresPool(databaseUrl);
     const run: Run = async <T>(text: string, params: unknown[]) => {
       const res = await pool.query(text, params);
       return res.rows as T[];
