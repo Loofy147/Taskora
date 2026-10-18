@@ -40,7 +40,7 @@ import { emailAndPasswordEnabled } from "./email-password";
 import { GATE_PROVIDER_ID, gateIdentitySessions } from "./gate-session.server";
 import { GROK_PROVIDERS } from "./providers";
 import { pgliteDialect } from "./pglite-dialect";
-import { isRuntimeAuthConfigured, isRuntimeAuthEnabled } from "../runtime-mode.ts";
+import { DatabaseNotConfiguredError, isRuntimeAuthConfigured, isRuntimeAuthEnabled } from "../runtime-mode.ts";
 import {
   GROK_ISSUER_DEFAULT,
   PREVIEW_ALLOWED_HOSTS,
@@ -157,7 +157,13 @@ const grokUserInfoUrl = `${issuerBase}/api/auth/oauth2/userinfo`;
 // the app turns sign-in on.
 const database = databaseUrl
   ? new Pool({ connectionString: databaseUrl })
-  : { dialect: pgliteDialect(() => getPglite()), type: "postgres" as const };
+  : {
+      dialect: pgliteDialect(() => {
+        if (isVercelRuntime) throw new DatabaseNotConfiguredError();
+        return getPglite();
+      }),
+      type: "postgres" as const,
+    };
 
 /** Session token cookie name — also read by the live-preview popup completion page. */
 export const SESSION_TOKEN_COOKIE = "__Host-grok-auth.session_token";
