@@ -16,7 +16,7 @@
 
 - **App ID:** taskora-ube0f6
 - **URL:** https://taskora-ube0f6.v2.appdeploy.ai/
-- **Current revision:** 1792327799498 (v13; Settings usability smoke-tested, authenticated E2E unverified)
+- **Current revision:** 1792338457910 (v14; Settings order and cloud-status guard deployed, authenticated E2E unverified)
 - **Observed result:** v12 deployment status was ready, with live smoke checks for anonymous API denial and malformed backup relationship/duplicate-ID rejection. v13 is ready and its QA snapshot reports no frontend/backend/network errors. A read-only live browser check confirmed the Settings primary controls are visible and the three advanced disclosures are collapsed by default. The four-test definition has one sanity case, but AppDeploy did not return an executed E2E result.
 - **Root cause:** an early effect dependency array referenced currentUserId before its const declaration, triggering a temporal-dead-zone error while rendering. The declaration was moved above its first use.
 - **Still unknown:** the AppDeploy status response did not return an executed E2E result. Real sign-in, migration, data persistence, concurrent edits and account isolation remain unverified end to end.
@@ -136,3 +136,8 @@ The deployed validator now enforces unique project/member IDs, unique comment/at
 ## v13 Settings usability smoke — 2026-10-18
 
 The current Track B revision is `1792327799498`. An unauthenticated live browser reached Settings and confirmed `Account & cloud sync` and `Local backup` are visible while `Advanced task storage`, `System status`, and `Feature availability` start collapsed. AppDeploy reported ready with empty frontend/backend/network error lists; no executed E2E result was returned. This evidence changes the Settings render/usability status only. Authenticated persistence, migration recovery and two-account isolation remain **UNKNOWN / OPEN**.
+
+
+## v14 cloud-status and Settings follow-up — 2026-10-18
+
+Revision `1792338457910` fixes the initial `remoteRevision = 0` ambiguity. A valid revision-0 response means no snapshot has ever been saved; a failed or invalid response now renders the revision as `Unknown` with retry guidance. Live unauthenticated browser inspection confirms the normal account/backup panels precede the collapsed advanced panels. A QA-fault test for `GET /api/workspace` HTTP 503 has been added, but its execution result was not returned. Authenticated persistence, migration recovery and account A/B isolation remain **UNKNOWN / OPEN**.
