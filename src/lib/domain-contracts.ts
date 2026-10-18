@@ -333,6 +333,7 @@ export const ArchiveTaskInputSchema = z
 export const UpdateTaskInputSchema = z
   .object({
     workspaceId: IdentifierSchema,
+    taskId: IdentifierSchema,
     expectedVersion: VersionSchema,
     title: TitleSchema.optional(),
     description: DescriptionSchema.optional(),
