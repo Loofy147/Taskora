@@ -7,6 +7,10 @@ import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { Avatar, Logo } from "@/components/bits";
 import { NAV, QUICKS } from "@/components/view-config";
+import { Link } from "@tanstack/react-router";
+import { UserButton } from "@/lib/auth/gates";
+import { authEnabled } from "@/lib/auth/client";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
 
 const SORTS: { id: SortKey; label: string }[] = [
   { id: "due", label: "Due Date" },
@@ -129,6 +133,7 @@ function Topbar() {
   const setView = useApp((s) => s.setView);
   const members = useApp((s) => s.members);
   const me = members.find((m) => m.id === ME);
+  const { user, isPending } = useCurrentUserState();
   const [searchOpen, setSearchOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -175,26 +180,38 @@ function Topbar() {
           >
             <Settings className="size-5" />
           </button>
-          <div className="relative">
-            <button
-              type="button"
-              className="flex min-h-11 items-center gap-2 rounded-xl px-1.5 hover:bg-chip"
-              aria-expanded={profileOpen}
-              aria-label="Account menu"
-              onClick={() => {
-                setProfileOpen((v) => !v);
-                setNotifOpen(false);
-              }}
-            >
-              <Avatar member={me} size="md" />
-              <span className="hidden text-left lg:block">
-                <span className="block text-sm font-semibold leading-tight">{me?.name || "You"}</span>
-                <span className="block text-xs text-faint">{me?.role}</span>
-              </span>
-              <ChevronDown className="hidden size-4 text-faint lg:block" />
-            </button>
-            {profileOpen && <ProfileMenu onClose={() => setProfileOpen(false)} />}
-          </div>
+          {authEnabled ? (
+            isPending ? (
+              <span className="px-2 text-xs text-faint" role="status">Checking account…</span>
+            ) : user ? (
+              <UserButton />
+            ) : (
+              <Link to="/login" className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-fg hover:bg-primary-ink">
+                Sign in
+              </Link>
+            )
+          ) : (
+            <div className="relative">
+              <button
+                type="button"
+                className="flex min-h-11 items-center gap-2 rounded-xl px-1.5 hover:bg-chip"
+                aria-expanded={profileOpen}
+                aria-label="Account menu"
+                onClick={() => {
+                  setProfileOpen((v) => !v);
+                  setNotifOpen(false);
+                }}
+              >
+                <Avatar member={me} size="md" />
+                <span className="hidden text-left lg:block">
+                  <span className="block text-sm font-semibold leading-tight">{me?.name || "You"}</span>
+                  <span className="block text-xs text-faint">{me?.role}</span>
+                </span>
+                <ChevronDown className="hidden size-4 text-faint lg:block" />
+              </button>
+              {profileOpen && <ProfileMenu onClose={() => setProfileOpen(false)} />}
+            </div>
+          )}
         </div>
       </div>
       {searchOpen && (

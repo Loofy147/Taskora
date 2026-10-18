@@ -1,22 +1,24 @@
 import { migrationsForAuthMode, pendingMigrations } from "../../scripts/migration-plan.mjs";
-
-/** Which database backend is active. */
-export type DbSource = "neon" | "pglite";
+import { DatabaseNotConfiguredError, resolveDbSource, type DbSource } from "./runtime-mode.ts";
 
 // An empty/whitespace DATABASE_URL (an easy misconfig in deploy UIs) must mean
 // "unset" — otherwise production would silently run on the PGLite fallback.
 const rawDatabaseUrl =
   typeof process !== "undefined" ? process.env.DATABASE_URL : undefined;
 const databaseUrl =
-  rawDatabaseUrl && rawDatabaseUrl.trim() ? rawDatabaseUrl : undefined;
+  rawDatabaseUrl?.trim() ? rawDatabaseUrl.trim() : undefined;
 
 /**
- * Active backend: real **Neon** when `DATABASE_URL` is set (deployed / configured
- * sandbox), otherwise a local embedded **PGLite** (Postgres compiled to WASM) so
- * the app has a working database even with nothing configured — the live preview
- * included. Swap in Neon later by just setting `DATABASE_URL`; no code changes.
+ * Database selection is deliberately environment-aware:
+ * - `DATABASE_URL` -> external PostgreSQL (Neon or another compatible provider).
+ * - Local development/tests without a URL -> embedded PGlite.
+ * - Vercel without a URL -> `unconfigured`; never try to open PGlite in a
+ *   serverless bundle or silently imply that ephemeral process memory is durable.
  */
-export const dbSource: DbSource = databaseUrl ? "neon" : "pglite";
+export const dbSource: DbSource = resolveDbSource({
+  databaseUrl,
+  isVercelRuntime: typeof process !== "undefined" && process.env.VERCEL === "1",
+});
 
 /**
  * Minimal shared SQL surface, satisfied by both Neon and PGLite. Both the
@@ -90,7 +92,7 @@ function toSql(run: Run, transaction: Transaction): Sql {
   return sql;
 }
 
-function createNeonSql(): Promise<Sql> {
+function createPostgresSql(): Promise<Sql> {
   globalRef.__pgSqlPromise__ ??= (async () => {
     // Regular Postgres driver: node-postgres (`pg`) — works directly with Neon's
     // pooled endpoint. One pool per process; warm serverless instances reuse it.
@@ -251,7 +253,9 @@ async function createSql(): Promise<Sql> {
         "or a server route loader, never from client code.",
     );
   }
-  return dbSource === "neon" ? createNeonSql() : createPgliteSql();
+  if (dbSource === "postgres") return createPostgresSql();
+  if (dbSource === "unconfigured") throw new DatabaseNotConfiguredError();
+  return createPgliteSql();
 }
 
 /**
@@ -270,9 +274,9 @@ export function getSql(): Promise<Sql> {
 }
 
 /**
- * The shared PGLite instance (preview only), with `migrations/*.sql` applied.
- * Lets Better Auth persist to the SAME embedded DB as app data in preview (via a
- * Kysely dialect). Throws when `DATABASE_URL` is set (that path uses Neon).
+ * The shared PGLite instance for local development and isolated tests, with
+ * `migrations/*.sql` applied. It is never a Vercel persistence fallback.
+ * Throws when PostgreSQL is configured or the current runtime is unconfigured.
  */
 export async function getPglite(): Promise<import("@electric-sql/pglite").PGlite> {
   if (dbSource !== "pglite") {
@@ -287,9 +291,11 @@ export async function getPglite(): Promise<import("@electric-sql/pglite").PGlite
 /**
  * Finish DB bootstrap before the server handles traffic.
  *
- * - **PGLite** (preview / no `DATABASE_URL`): open the in-memory DB and apply
+ * - **PGLite** (local development/tests only): open the in-memory DB and apply
  *   `migrations/*.sql`. Idempotent — concurrent callers share one promise.
- * - **Neon**: no-op (pool is created lazily on first query).
+ * - **PostgreSQL** (configured deployment): no-op; the pool is created lazily.
+ * - **Unconfigured Vercel**: no-op here; each data operation fails closed with
+ *   `DATABASE_NOT_CONFIGURED` instead of trying to load an embedded database.
  *
  * Vite `configureServer` awaits this at dev startup; production imports of this
  * module kick it off immediately (see bottom of file).
