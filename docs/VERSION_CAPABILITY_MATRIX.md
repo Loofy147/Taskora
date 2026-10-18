@@ -1,6 +1,6 @@
 # Taskora version and capability matrix
 
-**Updated:** 2026-10-17  
+**Updated:** 2026-10-18  
 **Product tracks:** GitHub source (Track A) and AppDeploy staging (Track B) remain separate implementations. A feature marked implemented on one track is not automatically present on the other. Track-specific test evidence must be recorded independently.
 
 ## Evidence and status vocabulary
@@ -16,8 +16,8 @@
 
 - **App ID:** taskora-ube0f6
 - **URL:** https://taskora-ube0f6.v2.appdeploy.ai/
-- **Current revision:** 1792271940323 (v10; render-checked, E2E unverified)
-- **Observed result:** v10 deployment status is ready; validation is valid with no errors (one non-blocking warning recommends focusing the seven-test suite). The QA snapshot reports no frontend/backend/network errors and provides desktop/mobile screenshots. An executed E2E result was not returned.
+- **Current revision:** 1792325012924 (v11; render-checked, E2E unverified)
+- **Observed result:** v11 deployment status is ready. AppDeploy produced fresh desktop/mobile QA screenshots with no reported frontend/backend/network errors; a read-only browser smoke check also found the shell and all eight views visible without reported console/page/network errors. The test file contains four cases (one marked sanity), but no executed E2E result was returned.
 - **Root cause:** an early effect dependency array referenced currentUserId before its const declaration, triggering a temporal-dead-zone error while rendering. The declaration was moved above its first use.
 - **Still unknown:** the AppDeploy status response did not return an executed E2E result. Real sign-in, migration, data persistence, concurrent edits and account isolation remain unverified end to end.
 - **Track boundary:** this v9 revision is AppDeploy source. It is not the GitHub application deployed, and it has not been synchronized into GitHub source.
@@ -28,13 +28,13 @@
 |---|---|---|---|
 | App entry and React startup | Implemented; v9 screenshot shows the normal shell; error boundary and boot fallback added | V0.1 Reliability | Clean/failed start, direct URL reload, desktop + mobile screenshots, JS/page errors |
 | Navigation, board, list, calendar | Implemented; render checked, not full E2E verified | V0.1 Reliability | Visit every navigation entry on mobile/desktop; assert no blank, clipped, or dead-end screen |
-| Browser storage resilience | Partial; startup/storage guards exist; full restricted-storage behavior not verified | V0.1 Reliability | Storage API denied/throws, app remains usable, warnings are accurate, sign-out remains possible |
+| Browser storage resilience | Startup guards remain; v11 scopes signed-in workspace writes and owner-guards async response state updates; restricted-storage and account-switch behavior still lack executed E2E | V0.1 Reliability | Storage API denied/throws, sign-out remains possible, delayed requests cannot change another account's UI, and legacy-key migration is safe |
 | Task create/edit/status/delete | UI and protected API routes exist; E2E not verified | V0.2 Personal workflow | Create → update → move → comment → reload → delete; assert persistence and visible failure states |
 | Due dates and timed tasks | Date UI and optional start/end fields exist; server validates HH:mm and end-after-start; E2E not verified | V0.2 Personal workflow | Valid, incomplete, equal, reversed and malformed time ranges; calendar/agenda after reload |
-| JSON backup/export/restore | Implemented as personal fallback; live round-trip not recorded | V0.2 Personal workflow | Export/import, invalid/oversized backup rejection, explicit restore confirmation and round-trip equivalence |
+| JSON backup/export/restore | v11 client and server validators enforce task shape, nested fields, preferences, IDs, caps and serialized-size limits; actual browser round-trip remains unverified | V0.2 Personal workflow | Valid round-trip, malformed and oversized backup rejection, workspace unchanged on rejection, explicit restore confirmation |
 | Individual per-task cloud records | Protected per-task list/create/update/delete routes and revisions exist; live DB workflow not E2E verified | V0.3 Durable data | Real sign-in, create/update/delete, refresh/re-login persistence, stale revision conflicts |
 | Snapshot-to-task migration | v10 merges saved and submitted snapshot tasks, rejects same-ID divergent content, preflights existing task records, and blocks activation on workspace revision change; E2E unverified | V0.3 Durable data | Execute preservation/conflict/revision-race tests, verify idempotent retry and ownership-safe recovery, prove zero data loss |
-| Account-specific browser data | Scoped key strategy exists; two-account browser switching not proven | V0.3 Durable data | Accounts A/B in the same browser; sign-out, sign-in, reload, no cross-account data bleed |
+| Account-specific browser data | v11 uses encoded owner IDs in local keys, scopes signed-in writes, migrates legacy keys only with an owner match, and guards many async responses; runtime isolation remains unproven | V0.3 Durable data | Accounts A/B in one browser, delayed A responses while B is active, sign-out/sign-in/reload, and no cross-account data bleed |
 | Role/responsibility fields | Editable local/sample profiles and workload indicators exist; no authorization controls | V0.4 Team workspaces | Persist real members, invite/accept/revoke, enforced owner/admin/member/viewer capability matrix |
 | Shared workspace and invitations | Not implemented | V0.4 Team workspaces | Server-side membership, tenant authorization, invite expiry/revocation, negative cross-workspace tests |
 | Projects, milestones, task dependencies | Sample projects exist; full lifecycle/dependencies are incomplete | V0.5 Planning | Project CRUD, milestone ownership, dependency cycle prevention, blocked/unblocked transitions |
@@ -55,6 +55,7 @@
 - [x] Re-check the real page with a browser screenshot; the Taskora shell is visible on v9.
 - [ ] Execute the startup sanity workflow on the deployed revision.
 - [ ] Verify mobile viewport, browser console/page errors, direct reload and storage-denied scenarios.
+- [x] v11 adds strict workspace backup validation, account-scoped local keys and identity checks around asynchronous cloud operations; browser-level account switching and malformed-import flows remain open.
 - [ ] Add a regression test that fails if the app root remains blank and separately asserts the recovery screen on a deliberate render failure.
 - [x] Add Track B v10 source guards for snapshot task preservation, same-ID conflict rejection, existing-record preflight, and stale workspace revision detection; live E2E verification remains open.
 
@@ -113,3 +114,8 @@ Only after the core product is reliable. Require bounded permissions, traceable 
 - [Implementation roadmap](IMPLEMENTATION_ROADMAP.md)
 - [Final release runbook](FINAL_RELEASE_RUNBOOK.md)
 - [Product and engineering audit](PRODUCT_AUDIT.md)
+
+
+## v11 audit addendum — 2026-10-18
+
+The deployed AppDeploy revision is `1792325012924`. A read-only live browser smoke check passed for the visible shell and eight navigation views; AppDeploy's QA snapshot reported no frontend/backend/network errors and supplied desktop/mobile screenshots. These checks establish rendering only. No executed E2E result was returned, so the new four-case suite and the authentication, persistence, migration-recovery, conflict, and account-isolation gates remain **UNKNOWN / OPEN**. Do not claim production readiness.
