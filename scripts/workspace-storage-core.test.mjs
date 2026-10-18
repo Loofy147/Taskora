@@ -35,11 +35,12 @@ describe("workspace storage core", () => {
     assert.throws(() => derivePersonalWorkspaceId("x".repeat(513)), /user identity/i);
   });
 
-  it("fails closed when the shared demo identity mode disables authentication", () => {
+  it("fails closed unless authenticated persistence is explicitly enabled", () => {
     assert.equal(storageAuthModeAllowsPersistence("false"), false);
     assert.equal(storageAuthModeAllowsPersistence(" false "), false);
     assert.equal(storageAuthModeAllowsPersistence("true"), true);
-    assert.equal(storageAuthModeAllowsPersistence(undefined), true);
+    assert.equal(storageAuthModeAllowsPersistence(undefined), false);
+    assert.equal(storageAuthModeAllowsPersistence(""), false);
   });
 
   it("normalizes only positive safe integer revisions returned by PostgreSQL", () => {
