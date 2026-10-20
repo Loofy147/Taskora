@@ -34,3 +34,11 @@ Cloud population cannot currently be confirmed live because the checked Vercel p
 ## Deployment boundary
 
 The Vercel server-backed workspace and AppDeploy/browser-local board are separate deployments/stores. Shared seed source in Git makes their initial content consistent, but does not synchronize records created or edited in either deployment. Import/export between stores must remain explicit and include validation, conflict preview, destination backup and rollback.
+
+
+## Additive import and private source data
+
+- The backup schema permits an empty task due date and an empty profile email: unknown values remain explicitly unknown and are not fabricated for export/import.
+- Settings provides two validated import actions: **Merge missing records** (stable-ID idempotent; preserves current task fields, project names, settings and existing members while adding source context) or **Replace current data** (destructive replacement, with an export-before-replace warning).
+- Real registered Notion projects/work items are private portfolio data. Do not embed their titles/details, trading plans, equipment budgets, credentials or other private information in this public repository. Import the user's exported/approved private snapshot instead; source record URLs remain the canonical detail/provenance.
+- An import remains a manual snapshot, not live Notion synchronization. The Vercel cloud workspace and AppDeploy/local board still remain separate stores.
