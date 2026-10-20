@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { buildData } from "@/lib/seed";
+import { migratePortfolioState } from "@/lib/portfolio-migration";
 import {
   ME,
   type Member,
@@ -103,7 +104,7 @@ export const useApp = create<AppState>()(
       projectId: null,
       memberId: null,
       calendarDay: null,
-      selectedId: "task-catalog",
+      selectedId: fresh().tasks[0]?.id ?? null,
       detailsOpen: false,
       composerOpen: false,
       composerStatus: "todo",
@@ -327,7 +328,7 @@ export const useApp = create<AppState>()(
           projectId: null,
           memberId: null,
           calendarDay: null,
-          selectedId: "task-catalog",
+          selectedId: fresh().tasks[0]?.id ?? null,
           detailsOpen: false,
           composerOpen: false,
           composerStatus: "todo",
@@ -337,6 +338,8 @@ export const useApp = create<AppState>()(
     }),
     {
       name: "taskflow-pro-v1",
+      version: 2,
+      migrate: (persistedState) => migratePortfolioState(persistedState, fresh()) as Partial<AppState>,
       skipHydration: true,
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({

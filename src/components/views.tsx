@@ -622,8 +622,8 @@ export function SettingsView() {
           </ul>
         </section>
         <section className="rounded-2xl border border-high bg-high/40 p-4">
-          <h2 className="font-semibold text-high-ink">Reset demo</h2>
-          <p className="mt-1 text-sm text-muted">Puts the sample catalog, team, and dates back. Your browser edits are lost; if cloud sync is active, the reset state will also be saved to the server. Export a backup first if you need to preserve either copy.</p>
+          <h2 className="font-semibold text-high-ink">Reset to portfolio baseline</h2>
+          <p className="mt-1 text-sm text-muted">Replaces this browser’s local tasks and projects with the current portfolio baseline. Custom local records and edits will be lost. Export a backup first. This action does not change or sync the separate cloud workspace.</p>
           {confirm ? (
             <div className="mt-3 flex gap-2">
               <button
@@ -643,7 +643,7 @@ export function SettingsView() {
             </div>
           ) : (
             <button type="button" onClick={() => setConfirm(true)} className="mt-3 min-h-11 rounded-xl bg-high-ink px-4 text-sm font-semibold text-primary-fg">
-              Reset demo data
+              Reset local portfolio data
             </button>
           )}
         </section>
