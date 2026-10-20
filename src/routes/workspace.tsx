@@ -12,6 +12,7 @@ import {
 import { UserButton } from "@/lib/auth/gates";
 import { authEnabled } from "@/lib/auth/client";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
+import { browserTimeZone, buildScheduleInterval, formatScheduledInstant } from "@/lib/schedule-input";
 
 export const Route = createFileRoute("/workspace")({ component: WorkspacePage });
 
@@ -35,73 +36,6 @@ const PRIORITIES: Array<{ value: TaskPriority; label: string }> = [
 ];
 const newRequestId = () => globalThis.crypto.randomUUID();
 
-function browserTimeZone(): string {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-  } catch {
-    return "UTC";
-  }
-}
-
-function parseLocalDateTime(value: string): Date | null {
-  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value);
-  if (!match) return null;
-  const [, yearRaw, monthRaw, dayRaw, hourRaw, minuteRaw] = match;
-  const date = new Date(value);
-  if (!Number.isFinite(date.getTime())) return null;
-  if (
-    date.getFullYear() !== Number(yearRaw) ||
-    date.getMonth() + 1 !== Number(monthRaw) ||
-    date.getDate() !== Number(dayRaw) ||
-    date.getHours() !== Number(hourRaw) ||
-    date.getMinutes() !== Number(minuteRaw)
-  ) return null;
-  return date;
-}
-
-function buildScheduleInterval(
-  startValue: string,
-  endValue: string,
-  timeZone: string,
-): { ok: true; schedule: { startsAt: string; endsAt: string; timeZone: string } | null } | { ok: false; message: string } {
-  if (!startValue && !endValue) return { ok: true, schedule: null };
-  if (!startValue || !endValue) {
-    return { ok: false, message: "Enter both a schedule start and end, or leave both empty." };
-  }
-  const start = parseLocalDateTime(startValue);
-  const end = parseLocalDateTime(endValue);
-  if (!start || !end) {
-    return { ok: false, message: "Enter valid local dates and times. A time skipped by a timezone change cannot be scheduled." };
-  }
-  if (end.getTime() <= start.getTime()) {
-    return { ok: false, message: "Schedule end must be later than its start." };
-  }
-  try {
-    new Intl.DateTimeFormat("en-US", { timeZone });
-  } catch {
-    return { ok: false, message: "The browser timezone is not valid. Refresh and try again." };
-  }
-  return {
-    ok: true,
-    schedule: {
-      startsAt: start.toISOString(),
-      endsAt: end.toISOString(),
-      timeZone,
-    },
-  };
-}
-
-function formatScheduledInstant(instant: string, timeZone: string): string {
-  try {
-    return new Intl.DateTimeFormat(undefined, {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone,
-    }).format(new Date(instant));
-  } catch {
-    return instant;
-  }
-}
 const messageFor = (error: unknown) =>
   error instanceof Error && error.message.trim()
     ? error.message
