@@ -36,6 +36,108 @@ const PRIORITIES: Array<{ value: TaskPriority; label: string }> = [
 ];
 const newRequestId = () => globalThis.crypto.randomUUID();
 
+// Stable request keys make a partially completed bootstrap safe to retry.
+// The backend scopes idempotency by actor + workspace + operation.
+const PRODUCT_BACKLOG_PROJECT_REQUEST_ID = "c2c0d7d0-3f0a-4aa1-aafa-0a1e0a6d0001";
+type ProductBacklogSeed = {
+  requestId: string;
+  title: string;
+  description: string;
+  priority: TaskPriority;
+};
+const PRODUCT_BACKLOG_TASKS: readonly ProductBacklogSeed[] = [
+  {
+    requestId: "c2c0d7d0-3f0a-4aa1-aafa-0a1e0a6d0002",
+    title: "[P0] Configure durable PostgreSQL and Better Auth on Vercel preview",
+    description: "Acceptance: provision a disposable durable PostgreSQL database; install auth/database values as encrypted Vercel environment variables (never in Git); apply migrations successfully; verify the app remains fail-closed when required values are absent.",
+    priority: "high",
+  },
+  {
+    requestId: "c2c0d7d0-3f0a-4aa1-aafa-0a1e0a6d0003",
+    title: "[P0] Verify authenticated sign-in, callback, session refresh and sign-out",
+    description: "Acceptance: exercise login, callback, direct /workspace access, refresh with an active session, expired-session handling, and sign-out in a real browser; capture reproducible evidence for each result.",
+    priority: "high",
+  },
+  {
+    requestId: "c2c0d7d0-3f0a-4aa1-aafa-0a1e0a6d0004",
+    title: "[P0] Prove two-account workspace isolation",
+    description: "Acceptance: create two independent accounts; verify neither can list, read, edit, archive or assign records owned by the other; forged workspace IDs and cross-account idempotency-key reuse must be rejected without leaking private records.",
+    priority: "high",
+  },
+  {
+    requestId: "c2c0d7d0-3f0a-4aa1-aafa-0a1e0a6d0005",
+    title: "[P0] Verify durable save and reload recovery",
+    description: "Acceptance: create and edit projects/tasks, reload the page, sign out and back in, and verify records survive a new browser session and application instance; prove successful writes reached PostgreSQL rather than local demo storage.",
+    priority: "high",
+  },
+  {
+    requestId: "c2c0d7d0-3f0a-4aa1-aafa-0a1e0a6d0006",
+    title: "[P0] Test idempotent retries and stale-write conflicts",
+    description: "Acceptance: retry an identical create after simulating a lost response and confirm one entity only; reuse a request key with changed payload and expect conflict; concurrent edits using an old expectedVersion must not overwrite newer data.",
+    priority: "high",
+  },
+  {
+    requestId: "c2c0d7d0-3f0a-4aa1-aafa-0a1e0a6d0007",
+    title: "[P1] Complete task detail editing and permission enforcement",
+    description: "Acceptance: support editing the task title, description, due date and schedule in addition to status/priority; verify server-side authorization for every write and test owner/admin/member/viewer permissions.",
+    priority: "high",
+  },
+  {
+    requestId: "c2c0d7d0-3f0a-4aa1-aafa-0a1e0a6d0008",
+    title: "[P1] Implement real team membership, invitations and assignments",
+    description: "Acceptance: membership and invitation states are persisted; only authorized roles can invite, change roles or assign; inactive and unknown members cannot be assigned; UI role labels match enforced server policy.",
+    priority: "medium",
+  },
+  {
+    requestId: "c2c0d7d0-3f0a-4aa1-aafa-0a1e0a6d0009",
+    title: "[P1] Design and test local-board to server-workspace migration",
+    description: "Acceptance: preview the migration before writes; preserve the original local copy; validate schema, record identity and conflicts; support safe retry, cancellation and rollback; never silently overwrite local or server changes.",
+    priority: "high",
+  },
+  {
+    requestId: "c2c0d7d0-3f0a-4aa1-aafa-0a1e0a6d0010",
+    title: "[P1] Verify backup export, import, restore and corruption recovery",
+    description: "Acceptance: export a versioned backup, validate imported JSON and unique IDs, reject malformed or duplicate records, restore into a disposable workspace, compare record counts/checksums, and document recovery steps.",
+    priority: "medium",
+  },
+  {
+    requestId: "c2c0d7d0-3f0a-4aa1-aafa-0a1e0a6d0011",
+    title: "[P1] Run AppDeploy v16 independent staging acceptance",
+    description: "Acceptance for AppDeploy revision 1792339899173 only: create/edit/status-change/reload tasks; test backup/restore, malformed/duplicate IDs, conflict/revision behavior, account switching if supported, empty/error states, desktop and mobile. Store the transcript and verdict; do not credit Vercel tests to this track.",
+    priority: "high",
+  },
+  {
+    requestId: "c2c0d7d0-3f0a-4aa1-aafa-0a1e0a6d0012",
+    title: "[P1] Fix AppDeploy local persistence and owner-switch acceptance gaps",
+    description: "Acceptance for AppDeploy only: prove existing owner-scoped browser data survives login/logout and reload; prevent silent reset on account switches; make cloud-disabled behavior explicit; establish import/export recovery before enabling any synchronization.",
+    priority: "high",
+  },
+  {
+    requestId: "c2c0d7d0-3f0a-4aa1-aafa-0a1e0a6d0013",
+    title: "[P1] Verify timezone-aware scheduling and calendar behavior",
+    description: "Acceptance: test valid intervals, partial intervals, invalid calendar dates, reversed ranges, IANA timezone conversion, daylight-saving gaps/folds, and display consistency across browser timezones; preserve due dates separately from scheduled intervals.",
+    priority: "medium",
+  },
+  {
+    requestId: "c2c0d7d0-3f0a-4aa1-aafa-0a1e0a6d0014",
+    title: "[P1] Reduce navigation and workflow friction",
+    description: "Acceptance: sign-in, task creation, assignment, project switching, search and recovery are discoverable on mobile and desktop; empty/loading/error/stale states have a clear next action; test keyboard and small-screen interaction without disabling security gates.",
+    priority: "medium",
+  },
+  {
+    requestId: "c2c0d7d0-3f0a-4aa1-aafa-0a1e0a6d0015",
+    title: "[P1] Reconcile README, roadmap and full-system execution docs",
+    description: "Acceptance: document the exact main commit, open PRs, preview/production revisions, runtime flags, known blockers and test evidence; remove obsolete readiness claims and keep architecture/backlog paths accurate.",
+    priority: "medium",
+  },
+  {
+    requestId: "c2c0d7d0-3f0a-4aa1-aafa-0a1e0a6d0016",
+    title: "[P0] Complete release-gate review before production rollout",
+    description: "Acceptance: review every P0 gate, confirm all release checks are green with linked evidence, verify database restore and rollback, independently review security/isolation, and only then approve a deliberate production deployment.",
+    priority: "high",
+  },
+];
+
 const messageFor = (error: unknown) =>
   error instanceof Error && error.message.trim()
     ? error.message
@@ -190,6 +292,51 @@ function WorkspaceContent() {
     }
   }
 
+  async function initializeProductBacklog() {
+    if (!workspace || busy) return;
+    setBusy("initialize-backlog"); setError(null); setNotice(null);
+    try {
+      const project = await createTaskoraProject({ data: {
+        workspaceId: workspace.workspaceId,
+        name: "Taskora Product Development",
+        description: "Canonical operational backlog for building, verifying and releasing Taskora. Evidence and acceptance criteria belong in each task.",
+        requestId: PRODUCT_BACKLOG_PROJECT_REQUEST_ID,
+      }});
+      setProjects((current) => [project, ...current.filter((p) => p.id !== project.id)]);
+      setTaskProjectId(project.id);
+
+      // Sequential writes limit load and make partial progress predictable. Each
+      // request key is stable, so rerunning after a network failure does not dupe
+      // already-confirmed projects/tasks and does not overwrite later edits.
+      for (const seed of PRODUCT_BACKLOG_TASKS) {
+        await createTaskoraTask({ data: {
+          workspaceId: workspace.workspaceId,
+          projectId: project.id,
+          title: seed.title,
+          description: seed.description,
+          status: "todo",
+          priority: seed.priority,
+          dueDate: null,
+          schedule: null,
+          assigneeIds: [],
+          requestId: seed.requestId,
+        }});
+      }
+
+      const refreshed = await refresh(false, false);
+      if (refreshed) {
+        setNotice("Taskora Product Development is ready: all " + PRODUCT_BACKLOG_TASKS.length + " acceptance-driven tasks have been confirmed. You can safely run this again after an uncertain response; stable request keys prevent duplicate records.");
+      } else {
+        setNeedsRefresh(true);
+        setNotice("Backlog create requests completed, but the task list could not be refreshed. Refresh to verify saved records; retrying the same initialization is safe.");
+      }
+    } catch (cause) {
+      setError("Backlog initialization stopped safely. Successfully completed records remain saved; retrying uses the same idempotency keys and will not duplicate confirmed records. " + messageFor(cause));
+    } finally {
+      setBusy(null);
+    }
+  }
+
   async function updateTask(task: DomainTask, patch: Partial<Pick<DomainTask, "status" | "priority">>) {
     if (!workspace || busy) return;
     setBusy("task:" + task.id); setError(null); setNotice(null);
@@ -250,6 +397,15 @@ function WorkspaceContent() {
       <div className="mx-auto grid w-full max-w-6xl gap-4 p-4 md:p-6">
         {error && <div className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-high bg-high/20 p-3" role="alert"><p className="min-w-0 flex-1 text-sm">{error}</p><button type="button" onClick={() => void refresh()} className="min-h-10 rounded-lg border border-line px-3 text-sm font-semibold">Retry refresh</button></div>}
         {notice && <p className="rounded-xl border border-line bg-surface p-3 text-sm" role="status">{notice}</p>}
+        <section className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h2 className="font-semibold">Actual Taskora execution backlog</h2>
+            <p className="mt-1 text-sm text-muted">Create the project's real engineering and acceptance tasks in this authenticated workspace. No demo/local tasks are substituted, and retries are idempotent.</p>
+          </div>
+          <button type="button" onClick={() => void initializeProductBacklog()} disabled={!workspace || loading || busy !== null} className="min-h-11 shrink-0 rounded-xl border border-line px-4 text-sm font-semibold disabled:opacity-50">
+            {busy === "initialize-backlog" ? "Saving backlog tasks…" : "Initialize / verify backlog"}
+          </button>
+        </section>
         <section className="grid gap-4 lg:grid-cols-2">
           <form onSubmit={submitProject} className="grid content-start gap-3 rounded-2xl border border-line bg-surface p-4">
             <h2 className="font-semibold">Projects</h2>
