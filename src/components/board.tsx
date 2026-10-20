@@ -46,7 +46,7 @@ export function Board() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold tracking-tight sm:text-2xl">Portfolio tasks</h1>
-          <p className="mt-1 text-sm text-muted">Personal board · stored in this browser. Shared synchronization and invitations are not connected; export a backup before clearing browser data. Records do not automatically sync with the cloud workspace.</p>
+          <p className="mt-1 text-sm text-muted">Personal board · stored in this browser. shared synchronization and invitations are not connected; export a backup before clearing browser data. Records do not automatically sync with the cloud workspace.</p>
         </div>
         <button
           type="button"
