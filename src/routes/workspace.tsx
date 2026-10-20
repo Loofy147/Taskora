@@ -34,6 +34,74 @@ const PRIORITIES: Array<{ value: TaskPriority; label: string }> = [
   { value: "high", label: "High" },
 ];
 const newRequestId = () => globalThis.crypto.randomUUID();
+
+function browserTimeZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  } catch {
+    return "UTC";
+  }
+}
+
+function parseLocalDateTime(value: string): Date | null {
+  const match = /^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2})$/.exec(value);
+  if (!match) return null;
+  const [, yearRaw, monthRaw, dayRaw, hourRaw, minuteRaw] = match;
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return null;
+  if (
+    date.getFullYear() !== Number(yearRaw) ||
+    date.getMonth() + 1 !== Number(monthRaw) ||
+    date.getDate() !== Number(dayRaw) ||
+    date.getHours() !== Number(hourRaw) ||
+    date.getMinutes() !== Number(minuteRaw)
+  ) return null;
+  return date;
+}
+
+function buildScheduleInterval(
+  startValue: string,
+  endValue: string,
+  timeZone: string,
+): { ok: true; schedule: { startsAt: string; endsAt: string; timeZone: string } | null } | { ok: false; message: string } {
+  if (!startValue && !endValue) return { ok: true, schedule: null };
+  if (!startValue || !endValue) {
+    return { ok: false, message: "Enter both a schedule start and end, or leave both empty." };
+  }
+  const start = parseLocalDateTime(startValue);
+  const end = parseLocalDateTime(endValue);
+  if (!start || !end) {
+    return { ok: false, message: "Enter valid local dates and times. A time skipped by a timezone change cannot be scheduled." };
+  }
+  if (end.getTime() <= start.getTime()) {
+    return { ok: false, message: "Schedule end must be later than its start." };
+  }
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone });
+  } catch {
+    return { ok: false, message: "The browser timezone is not valid. Refresh and try again." };
+  }
+  return {
+    ok: true,
+    schedule: {
+      startsAt: start.toISOString(),
+      endsAt: end.toISOString(),
+      timeZone,
+    },
+  };
+}
+
+function formatScheduledInstant(instant: string, timeZone: string): string {
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short",
+      timeZone,
+    }).format(new Date(instant));
+  } catch {
+    return instant;
+  }
+}
 const messageFor = (error: unknown) =>
   error instanceof Error && error.message.trim()
     ? error.message
@@ -90,6 +158,9 @@ function WorkspaceContent() {
   const [taskDescription, setTaskDescription] = useState("");
   const [priority, setPriority] = useState<TaskPriority>("medium");
   const [dueDate, setDueDate] = useState("");
+  const [scheduleStart, setScheduleStart] = useState("");
+  const [scheduleEnd, setScheduleEnd] = useState("");
+  const [scheduleTimeZone] = useState(browserTimeZone);
   const [taskRequestId, setTaskRequestId] = useState(newRequestId);
 
   const refresh = useCallback(async (showLoading = true, clearMessages = true): Promise<boolean> => {
@@ -152,6 +223,8 @@ function WorkspaceContent() {
   async function submitTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!workspace || !taskProjectId || !taskTitle.trim() || busy) return;
+    const scheduleResult = buildScheduleInterval(scheduleStart, scheduleEnd, scheduleTimeZone);
+    if (!scheduleResult.ok) { setError(scheduleResult.message); setNotice(null); return; }
     setBusy("create-task"); setError(null); setNotice(null);
     try {
       const task = await createTaskoraTask({ data: {
@@ -162,11 +235,12 @@ function WorkspaceContent() {
         status: "todo",
         priority,
         dueDate: dueDate || null,
-        schedule: null,
+        schedule: scheduleResult.schedule,
         assigneeIds: [],
         requestId: taskRequestId,
       }});
       setTaskTitle(""); setTaskDescription(""); setPriority("medium"); setDueDate("");
+      setScheduleStart(""); setScheduleEnd("");
       setTaskRequestId(newRequestId());
       if (!await refresh(false, false)) {
         setTasks((current) => [task, ...current.filter((t) => t.id !== task.id)].slice(0, PAGE_SIZE));
@@ -260,6 +334,16 @@ function WorkspaceContent() {
               <label className="grid gap-1 text-sm">Priority<select value={priority} onChange={(e) => { setPriority(e.target.value as TaskPriority); setTaskRequestId(newRequestId()); }} className="h-11 rounded-xl border border-line bg-bg px-3" disabled={busy !== null}>{PRIORITIES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}</select></label>
               <label className="grid gap-1 text-sm">Due date<input type="date" value={dueDate} onChange={(e) => { setDueDate(e.target.value); setTaskRequestId(newRequestId()); }} className="h-11 rounded-xl border border-line bg-bg px-3" disabled={busy !== null} /></label>
             </div>
+            <div className="grid gap-3 rounded-xl border border-line p-3">
+              <div>
+                <p className="text-sm font-medium">Schedule (optional)</p>
+                <p className="mt-1 text-xs text-muted">Times use your browser timezone: {scheduleTimeZone}. Leave both empty when the task has no fixed time.</p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="grid gap-1 text-sm">Start date and time<input type="datetime-local" value={scheduleStart} onChange={(e) => { setScheduleStart(e.target.value); setTaskRequestId(newRequestId()); }} className="h-11 min-w-0 rounded-xl border border-line bg-bg px-3" disabled={busy !== null} /></label>
+                <label className="grid gap-1 text-sm">End date and time<input type="datetime-local" value={scheduleEnd} onChange={(e) => { setScheduleEnd(e.target.value); setTaskRequestId(newRequestId()); }} className="h-11 min-w-0 rounded-xl border border-line bg-bg px-3" disabled={busy !== null} /></label>
+              </div>
+            </div>
             <button type="submit" disabled={!taskTitle.trim() || !taskProjectId || busy !== null} className="min-h-11 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-fg disabled:opacity-50">{busy === "create-task" ? "Saving task…" : "Create task"}</button>
           </form>
         </section>
@@ -271,7 +355,7 @@ function WorkspaceContent() {
           {loading && !workspace ? <p className="py-5 text-sm text-muted" role="status">Loading your server workspace…</p> : (
             <div className="grid gap-2">
               {visibleTasks.map((task) => <article key={task.id} className="grid gap-3 rounded-xl border border-line p-3 md:grid-cols-[minmax(0,1fr)_auto_auto_auto] md:items-center">
-                <div className="min-w-0"><h3 className="font-medium">{task.title}</h3><p className="mt-0.5 text-sm text-muted">{projectNames.get(task.projectId) ?? "Unknown project"} · {task.dueDate ?? "No deadline"}</p>{task.description && <p className="mt-2 whitespace-pre-wrap text-sm">{task.description}</p>}</div>
+                <div className="min-w-0"><h3 className="font-medium">{task.title}</h3><p className="mt-0.5 text-sm text-muted">{projectNames.get(task.projectId) ?? "Unknown project"} · {task.dueDate ?? "No deadline"}</p>{task.description && <p className="mt-2 whitespace-pre-wrap text-sm">{task.description}</p>}{task.schedule && <p className="mt-2 text-sm text-muted">Scheduled: {formatScheduledInstant(task.schedule.startsAt, task.schedule.timeZone)} – {formatScheduledInstant(task.schedule.endsAt, task.schedule.timeZone)} ({task.schedule.timeZone})</p>}</div>
                 <label className="grid gap-1 text-xs text-muted">Status<select aria-label={"Status for " + task.title} value={task.status} onChange={(e) => void updateTask(task, { status: e.target.value as TaskStatus })} disabled={busy !== null} className="h-10 rounded-lg border border-line bg-bg px-2 text-sm text-fg">{STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}</select></label>
                 <label className="grid gap-1 text-xs text-muted">Priority<select aria-label={"Priority for " + task.title} value={task.priority} onChange={(e) => void updateTask(task, { priority: e.target.value as TaskPriority })} disabled={busy !== null} className="h-10 rounded-lg border border-line bg-bg px-2 text-sm text-fg">{PRIORITIES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}</select></label>
                 <button type="button" onClick={() => void archiveTask(task)} disabled={busy !== null} className="min-h-10 rounded-lg border border-line px-3 text-sm font-medium disabled:opacity-50">{busy === "archive:" + task.id ? "Archiving…" : "Archive"}</button>
