@@ -113,4 +113,18 @@ describe("Taskora workspace backups", () => {
     data.settings.density = "ultra";
     assert.throws(() => createWorkspaceBackup(data), /Workspace settings are malformed/);
   });
+
+  it("allows unknown due dates and unprovided profile email without fabricating values", () => {
+    const data = fixture();
+    data.tasks[0].due = "";
+    data.members[0].email = "";
+    const text = createWorkspaceBackup(data, "2026-10-17T12:00:00.000Z");
+    const parsed = parseWorkspaceBackup(text);
+    assert.equal(parsed.ok, true);
+    if (parsed.ok) {
+      assert.equal(parsed.data.tasks[0].due, "");
+      assert.equal(parsed.data.members[0].email, "");
+    }
+  });
+
 });

@@ -19,6 +19,7 @@ import {
 import { kindFromName, formatBytes } from "@/lib/utils";
 import { isDateKey, todayKey } from "@/lib/format";
 import type { WorkspaceBackupData } from "@/lib/workspace-backup.ts";
+import { mergeWorkspaceRecords, type WorkspaceMergeCounts } from "@/lib/workspace-merge.ts";
 
 interface AppState {
   tasks: Task[];
@@ -84,6 +85,7 @@ interface AppState {
   readAll: () => void;
   openNotice: (id: string) => void;
   replaceWorkspaceData: (data: WorkspaceBackupData) => void;
+  mergeWorkspaceData: (data: WorkspaceBackupData) => WorkspaceMergeCounts;
   reset: () => void;
 }
 
@@ -317,6 +319,24 @@ export const useApp = create<AppState>()(
           sidebarOpen: false,
           composerStatus: "todo",
         }),
+      mergeWorkspaceData: (data) => {
+        const state = get();
+        const merged = mergeWorkspaceRecords({
+          tasks: state.tasks,
+          projects: state.projects,
+          members: state.members,
+          notifications: state.notifications,
+          settings: state.settings,
+        }, data);
+        set({
+          tasks: merged.data.tasks,
+          projects: merged.data.projects,
+          members: merged.data.members,
+          notifications: merged.data.notifications,
+          selectedId: state.selectedId ?? merged.data.tasks[0]?.id ?? null,
+        });
+        return merged.counts;
+      },
       reset: () =>
         set({
           ...fresh(),
