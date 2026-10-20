@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { buildData } from "@/lib/seed";
+import { migratePortfolioState } from "@/lib/portfolio-migration";
 import {
   ME,
   type Member,
@@ -18,6 +19,7 @@ import {
 import { kindFromName, formatBytes } from "@/lib/utils";
 import { isDateKey, todayKey } from "@/lib/format";
 import type { WorkspaceBackupData } from "@/lib/workspace-backup.ts";
+import { mergeWorkspaceRecords, type WorkspaceMergeCounts } from "@/lib/workspace-merge.ts";
 
 interface AppState {
   tasks: Task[];
@@ -83,6 +85,7 @@ interface AppState {
   readAll: () => void;
   openNotice: (id: string) => void;
   replaceWorkspaceData: (data: WorkspaceBackupData) => void;
+  mergeWorkspaceData: (data: WorkspaceBackupData) => WorkspaceMergeCounts;
   reset: () => void;
 }
 
@@ -103,7 +106,7 @@ export const useApp = create<AppState>()(
       projectId: null,
       memberId: null,
       calendarDay: null,
-      selectedId: "task-catalog",
+      selectedId: fresh().tasks[0]?.id ?? null,
       detailsOpen: false,
       composerOpen: false,
       composerStatus: "todo",
@@ -316,6 +319,24 @@ export const useApp = create<AppState>()(
           sidebarOpen: false,
           composerStatus: "todo",
         }),
+      mergeWorkspaceData: (data) => {
+        const state = get();
+        const merged = mergeWorkspaceRecords({
+          tasks: state.tasks,
+          projects: state.projects,
+          members: state.members,
+          notifications: state.notifications,
+          settings: state.settings,
+        }, data);
+        set({
+          tasks: merged.data.tasks,
+          projects: merged.data.projects,
+          members: merged.data.members,
+          notifications: merged.data.notifications,
+          selectedId: state.selectedId ?? merged.data.tasks[0]?.id ?? null,
+        });
+        return merged.counts;
+      },
       reset: () =>
         set({
           ...fresh(),
@@ -327,7 +348,7 @@ export const useApp = create<AppState>()(
           projectId: null,
           memberId: null,
           calendarDay: null,
-          selectedId: "task-catalog",
+          selectedId: fresh().tasks[0]?.id ?? null,
           detailsOpen: false,
           composerOpen: false,
           composerStatus: "todo",
@@ -337,6 +358,8 @@ export const useApp = create<AppState>()(
     }),
     {
       name: "taskflow-pro-v1",
+      version: 2,
+      migrate: (persistedState) => migratePortfolioState(persistedState, fresh()) as Partial<AppState>,
       skipHydration: true,
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({

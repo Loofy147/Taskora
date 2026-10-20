@@ -64,3 +64,37 @@ export class DatabaseNotConfiguredError extends Error {
     this.name = "DatabaseNotConfiguredError";
   }
 }
+
+
+export interface PostgresPoolOptions {
+  max: number;
+  idleTimeoutMillis: number;
+  connectionTimeoutMillis: number;
+}
+
+export interface PostgresPoolInput {
+  isVercelRuntime: boolean;
+  maxConnections?: string;
+}
+
+/**
+ * Bound per-instance connection fan-out. Vercel instances use a small pool by
+ * default because multiple warm instances share the same managed database.
+ * PG_POOL_MAX may override the default, but invalid values fail early.
+ */
+export function resolvePostgresPoolOptions(input: PostgresPoolInput): PostgresPoolOptions {
+  const raw = input.maxConnections?.trim();
+  let max = input.isVercelRuntime ? 3 : 10;
+  if (raw) {
+    const parsed = Number(raw);
+    if (!Number.isInteger(parsed) || parsed < 1 || parsed > 10) {
+      throw new Error("PG_POOL_MAX must be an integer between 1 and 10.");
+    }
+    max = parsed;
+  }
+  return {
+    max,
+    idleTimeoutMillis: input.isVercelRuntime ? 10_000 : 30_000,
+    connectionTimeoutMillis: 5_000,
+  };
+}

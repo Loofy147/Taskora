@@ -96,7 +96,7 @@ jobs:
             const migrationResult = await pool.query("SELECT name FROM _migrations ORDER BY name");
             assert.deepEqual(
               migrationResult.rows.map((row) => row.name),
-              ["0001_auth.sql", "0001_workspace_storage.sql", "0002_normalized_domain.sql"],
+              ["0001_auth.sql", "0001_workspace_storage.sql", "0002_normalized_domain.sql", "0003_task_creation_idempotency.sql"],
               "auth-on migrations must be recorded exactly once",
             );
 
@@ -111,6 +111,7 @@ jobs:
                 "account",
                 "session",
                 "taskora_comments",
+                "taskora_idempotency_records",
                 "taskora_projects",
                 "taskora_subtasks",
                 "taskora_task_assignees",

@@ -60,6 +60,7 @@ const IdentifierSchema = z.string().trim().min(1).max(MAX_ID_LENGTH);
 const TitleSchema = z.string().trim().min(1).max(MAX_TITLE_LENGTH);
 const DescriptionSchema = z.string().max(MAX_BODY_LENGTH);
 const VersionSchema = z.number().int().min(1).max(Number.MAX_SAFE_INTEGER);
+export const IdempotencyKeySchema = z.string().uuid();
 
 function isValidDateKey(value: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -308,6 +309,15 @@ export const CreateProjectInputSchema = z
   })
   .strict();
 
+/** Request keys make network retries safe without granting authority. */
+export const CreateProjectCommandSchema = CreateProjectInputSchema.extend({
+  requestId: IdempotencyKeySchema,
+}).strict();
+
+export const CreateTaskCommandSchema = CreateTaskInputSchema.extend({
+  requestId: IdempotencyKeySchema,
+}).strict();
+
 export const ListTasksInputSchema = z
   .object({
     workspaceId: IdentifierSchema,
@@ -474,6 +484,8 @@ export type CreateTaskInput = z.infer<typeof CreateTaskInputSchema>;
 export type CreatePersonalWorkspaceInput = z.infer<typeof CreatePersonalWorkspaceInputSchema>;
 export type WorkspaceScope = z.infer<typeof WorkspaceScopeSchema>;
 export type CreateProjectInput = z.infer<typeof CreateProjectInputSchema>;
+export type CreateProjectCommand = z.infer<typeof CreateProjectCommandSchema>;
+export type CreateTaskCommand = z.infer<typeof CreateTaskCommandSchema>;
 export type ListTasksInput = z.infer<typeof ListTasksInputSchema>;
 export type GetTaskInput = z.infer<typeof GetTaskInputSchema>;
 export type ArchiveTaskInput = z.infer<typeof ArchiveTaskInputSchema>;
