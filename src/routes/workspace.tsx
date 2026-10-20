@@ -44,7 +44,7 @@ function browserTimeZone(): string {
 }
 
 function parseLocalDateTime(value: string): Date | null {
-  const match = /^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2})$/.exec(value);
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value);
   if (!match) return null;
   const [, yearRaw, monthRaw, dayRaw, hourRaw, minuteRaw] = match;
   const date = new Date(value);
