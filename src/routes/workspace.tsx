@@ -365,7 +365,39 @@ function WorkspaceContent({ actorUserId }: { actorUserId: string }) {
           workspaceId: workspace.workspaceId,
           taskId: createdOrReplayed.id,
         }});
-        if (latest.version === 1 && latest.assigneeIds.length === 0) {
+
+        // Keep the original create payload/request key above for safe replay.
+        // Older preview builds exposed two-account E2E as a P0. Defer that
+        // interactive test to the team-workspace rollout, while keeping the
+        // server-side authorization and negative domain tests in CI. Migrate
+        // only the unchanged v1 seed or the known v2 seed assigned by the
+        // previous initializer; any user-edited version is left untouched.
+        const legacyIsolationSeed = latest.title === "[P0] Prove two-account workspace isolation";
+        if (legacyIsolationSeed && latest.version === 1 && latest.assigneeIds.length === 0) {
+          await updateTaskoraTask({ data: {
+            workspaceId: workspace.workspaceId,
+            taskId: latest.id,
+            expectedVersion: latest.version,
+            title: "[P2] Verify team isolation before enabling shared workspaces",
+            description: "Deferred team-rollout acceptance, not a blocker for the initial personal workspace. Preserve authenticated actor/membership checks and automated negative-access tests in CI. Before enabling invitations or shared team workspaces, run two-account end-to-end checks for cross-workspace reads and mutations.",
+            priority: "low",
+            assigneeIds: [actorUserId],
+          }});
+        } else if (
+          legacyIsolationSeed &&
+          latest.version === 2 &&
+          latest.assigneeIds.length === 1 &&
+          latest.assigneeIds[0] === actorUserId
+        ) {
+          await updateTaskoraTask({ data: {
+            workspaceId: workspace.workspaceId,
+            taskId: latest.id,
+            expectedVersion: latest.version,
+            title: "[P2] Verify team isolation before enabling shared workspaces",
+            description: "Deferred team-rollout acceptance, not a blocker for the initial personal workspace. Preserve authenticated actor/membership checks and automated negative-access tests in CI. Before enabling invitations or shared team workspaces, run two-account end-to-end checks for cross-workspace reads and mutations.",
+            priority: "low",
+          }});
+        } else if (latest.version === 1 && latest.assigneeIds.length === 0) {
           await updateTaskoraTask({ data: {
             workspaceId: workspace.workspaceId,
             taskId: latest.id,
