@@ -76,3 +76,33 @@ test("actual engineering backlog is created as authenticated, durable Taskora re
     "Complete release-gate review before production rollout",
   ]) assert.ok(source.includes(title), `missing real acceptance task: ${title}`);
 });
+
+
+test("server-backed task detail editor exposes full supported task fields", async () => {
+  const source = await read("src/routes/workspace.tsx");
+  for (const marker of [
+    "function beginEditTask(task: DomainTask)",
+    "async function saveTaskDetails(task: DomainTask)",
+    "title: editDraft.title.trim()",
+    "description: editDraft.description",
+    "dueDate: editDraft.dueDate || null",
+    "schedule: scheduleResult.schedule",
+    'editAssignment === "self"',
+    'editAssignment === "unassigned"',
+    "getTaskoraTask({ data:",
+    "latest.version === 1 && latest.assigneeIds.length === 0",
+    "Assign to me",
+    "Save details",
+  ]) assert.ok(source.includes(marker), "missing task detail edit capability: " + marker);
+  assert.match(source, /expectedVersion:\s*task\.version/);
+  assert.match(source, /toDateTimeLocalInZone\(task\.schedule\.startsAt, timeZone\)/);
+  assert.match(source, /toDateTimeLocalInZone\(task\.schedule\.endsAt, timeZone\)/);
+});
+
+test("backlog bootstrap assigns only untouched seeds and does not overwrite user edits on retry", async () => {
+  const source = await read("src/routes/workspace.tsx");
+  assert.match(source, /const latest = await getTaskoraTask/);
+  assert.match(source, /if \(latest\.version === 1 && latest\.assigneeIds\.length === 0\)/);
+  assert.match(source, /expectedVersion:\s*latest\.version/);
+  assert.match(source, /assigneeIds:\s*\[actorUserId\]/);
+});
