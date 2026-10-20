@@ -8,7 +8,7 @@
 Before each task, record which implementation is being changed:
 
 - **GitHub source:** `Loofy147/Taskora`, branch/ref/commit, React/TanStack Start, Better Auth and PostgreSQL/PGlite.
-- **AppDeploy staging port:** app ID `taskora-ube0f6`, current deployed source revision `1792338457910` (v14; Settings order and cloud-status guard deployed; authenticated E2E unverified), AppDeploy auth and managed key-value database.
+- **AppDeploy staging port:** app ID `taskora-ube0f6`, current deployed source revision `1792339899173` (v16 local-first reliability batch; cloud snapshot/task-level persistence deferred; E2E verdict not returned), AppDeploy auth and managed key-value database.
 
 These are separate artifacts. A CI result on GitHub is not an AppDeploy E2E result. An AppDeploy-ready status is not a GitHub source deployment, a real PostgreSQL migration, or a production gate pass.
 
@@ -41,31 +41,34 @@ All items below must be checked before consuming the deployment slot:
 - [ ] A rollback/recovery decision is written down before deployment.
 - [ ] No new deploy is requested merely to inspect styling or make a cosmetic adjustment.
 
-## 4. Required final browser run
+## 4. Required final browser run — current v16 local-first build
 
-Use a disposable account and unique test records. Run desktop and mobile checks:
+Use disposable tasks and run desktop and mobile checks:
 
-1. App loads, API health visible, sign-in and sign-out.
-2. Task migration preflight and explicit confirmation; prove saved-snapshot-only tasks are retained, conflicting same-ID content fails closed before inserts, a changed workspace revision blocks activation, and identical retries reconcile safely.
-3. Create → edit → change status → comment → refresh/reload → verify server state.
-4. Concurrent stale update → explicit conflict → refresh and recover without lost update.
-5. Delete a test task → refresh/reload → confirm absence and safe tombstone behavior.
-6. Account A/B isolation in the same browser and independent sessions.
-7. Backup export, validated restore, invalid/oversized backup rejection.
-8. Auth expiry/network/database errors and recovery prompts.
-9. Mobile/desktop navigation, forms, keyboard access and empty/error/loading states.
-10. Inspect the E2E test result, logs, network errors and exact deployed source revision.
+1. App shell renders: brand, Board/List/Calendar/Projects/Team/Files/Reports/Settings navigation, search and New task.
+2. Create → edit → change status → comment → reload; verify local task and activity state remain available.
+3. Validate invalid title/date, oversized description/tag/comment, too many tags, incomplete time pairs and end time before start; rejected input must not change workspace state.
+4. Create timed tasks with overlapping dates/times/assignees. Verify the collision identifies the existing task; cancel prevents the write, while explicit confirmation allows the overlap.
+5. Apply combined search, status and priority filters; Clear filters restores the full result set.
+6. Edit a sample role and responsibility field and reload. Treat these as local user-maintained fields, not authorization or real team membership.
+7. Export a JSON backup, import it after confirmation, and verify a valid round-trip. Reject malformed and oversized files without replacing the current workspace.
+8. Confirm task deletion requires confirmation and leaves no stale row after the state update.
+9. Inspect page errors, network failures, QA snapshot, exact source revision and the actual E2E transcript. A `ready` deployment or empty error list is not an E2E pass.
 
-## 4A. v11 data-integrity and account-switch checks
+### Optional gates if cloud persistence is reactivated in a future candidate
 
-- [ ] Import malformed task JSON missing required fields; verify it is rejected and the current workspace remains unchanged.
-- [ ] Import valid and oversized backups; verify schema, nested arrays, unique task IDs, time-pair validity and size caps.
-- [ ] With account A requests delayed, switch to account B and confirm no A task/snapshot response changes B's visible state.
-- [ ] Verify local workspace keys are account-scoped and legacy-key migration does not read another owner's prior key.
-- [ ] Validate sign-in/out, snapshot upload/restore, auto-sync, task migration, per-task CRUD and stale revision conflicts with an executed browser test result.
-- [ ] Test two independent accounts and prove no cross-account read/write or UI data bleed.
+Do not run the current cloud UI as if it were supported: v16 explicitly defers snapshot upload/restore, auto-sync and task-level cloud activation. Any future reactivation requires a separate candidate that proves authenticated snapshot read/write/restore, per-task CRUD, stale revision conflicts, interrupted migration recovery, and two-account isolation. Use separate authorized test accounts and never ask for or store passwords, cookies, tokens or private task payloads in the audit record.
 
-**Evidence boundary:** v11 rendered and the read-only smoke check found no reported browser errors, but AppDeploy did not return an executed E2E result. Keep production approval on HOLD until the above outcomes are recorded against revision `1792325012924`.
+## 4A. Current local integrity and account-boundary checks
+
+- [ ] Import malformed JSON missing required task fields, duplicate IDs or broken project/member references; verify it is rejected and the workspace is unchanged.
+- [ ] Test valid and oversized backup files; verify nested records, time-pair validity, item caps and explicit restore confirmation.
+- [ ] Test task title/description/tag/comment limits and calendar date/time validation.
+- [ ] Test schedule conflict cancellation and explicit override paths.
+- [ ] Test List filter combinations and Clear filters on desktop/mobile.
+- [ ] Test browser storage denied/throws behavior, sign-out cleanup and account-scoped local keys.
+- [ ] Treat cloud auth, persistence and account A/B tests as reactivation gates—not as features of the current v16 local-first build.
+- [ ] Preserve the E2E transcript and mark every item PASS/FAIL/NOT RUN; test definitions alone do not satisfy this gate.
 
 ## 5. Post-deployment acceptance record
 
@@ -143,3 +146,13 @@ The remote browser used by this audit is logged out and has no user-controllable
 ## v14 cloud-status correctness check — 2026-10-18
 
 The current AppDeploy Track B revision is `1792338457910`. The client no longer equates a default revision value of zero with a successful empty-cloud response: it renders `Unknown` until the latest authenticated workspace read succeeds. The Settings UI now orders account sync and local backup before advanced task storage. A fifth QA test defines a simulated 503 for `GET /api/workspace`; the live deployment status is ready and the unauthenticated Settings smoke check passed, but no executed E2E result was returned. Authenticated cloud persistence and A/B isolation remain release blockers.
+
+
+## v16 local-first release note — 2026-10-18
+
+- **AppDeploy Track B revision:** `1792339899173` (ready).
+- **QA status:** returned snapshot reports no frontend/backend/network errors; no executed E2E verdict was returned, so the current workflows are not yet E2E-verified.
+- **Current supported path:** browser-local tasks plus JSON export/import. The deployed UI disables/defer cloud snapshots, auto-sync and task-level cloud storage until a separate authenticated end-to-end candidate is justified and verified.
+- **Changed behavior:** stricter task title/description/date/time/tag/comment bounds; a confirmation warning for overlapping timed tasks for the same assignee/date; List filters for status and priority plus Clear filters.
+- **Release decision:** staging only. Complete the local-first E2E acceptance checks before calling the current workflow verified. Reopening cloud persistence is optional and must not be inferred from backend routes still present in source.
+- **Deployment-capacity:** this document update is documentation-only and does not require another AppDeploy deployment.

@@ -6,7 +6,7 @@
 ## Implementation tracks — keep these separate
 
 - **Track A — GitHub source:** [`Loofy147/Taskora`](https://github.com/Loofy147/Taskora), `main` at audit baseline `5cc189106e3eb0a897708c52beeefe4e7e60ae1b`. This is the maintained React/TanStack Start implementation. The shipped app environment keeps auth and database provisioning off. Its whole-workspace snapshot bridge has embedded PGlite integration tests, but live authenticated PostgreSQL staging remains open.
-- **Track B — AppDeploy staging:** [live app](https://taskora-ube0f6.v2.appdeploy.ai/), app ID `taskora-ube0f6`, deployed source revision `1792326417562` (v12; render-checked and integrity guardrails smoke-tested, E2E still unverified). This remains a separate codebase with AppDeploy auth and a key-value managed database. v10 migration guards and v11 account-scoped local keys/async identity checks remain; v12 rejects duplicate nested/project/member IDs and broken task-to-project/assignee references. Live negative checks rejected malformed backups without changing the eight sample tasks. It is not generated from, or synchronized with, Track A.
+- **Track B — AppDeploy staging:** [live app](https://taskora-ube0f6.v2.appdeploy.ai/), app ID `taskora-ube0f6`, deployed source revision `1792339899173` (v16 local-first reliability batch; deployment ready, executed E2E verdict not returned). This remains a separate codebase with AppDeploy auth and a key-value managed database. The latest batch adds task input/date/time guardrails, same-assignee schedule-overlap confirmation, List status/priority filters with Clear filters, and explicit cloud deferral. Browser-local task management and JSON backup are the supported current path; authenticated cloud snapshots/task-level storage are disabled in the UI. AppDeploy-only changes do not synchronize to Track A.
 - **Evidence boundary:** the AppDeploy system reported status `ready` and no frontend/backend/network errors in its QA snapshot; it did not return an executed E2E result. The user reported account creation and trying inputs, but no specific migration/CRUD test outcome has been recorded. See [AppDeploy staging status](APPDEPLOY_STAGING.md).
 - **One release candidate at a time:** do not spend AppDeploy daily deployment capacity on intermediate edits. Prepare the whole candidate and use [the final release runbook](FINAL_RELEASE_RUNBOOK.md) and [version/capability matrix](VERSION_CAPABILITY_MATRIX.md).
 
@@ -119,11 +119,13 @@ Before enabling RLS in production, verify the database engine's security patch l
 
 ## Immediate next action
 
-**Track A:** proceed with Gate 1B, authenticated PostgreSQL staging, only after selecting the actual deployment environment and providing its secrets securely. Validate auth-schema preflight and migrations, then test browser upload/load/restore, failure recovery, reauthentication and two-account isolation.
+**System-level next step:** use [`FULL_SYSTEM_BLUEPRINT.md`](FULL_SYSTEM_BLUEPRINT.md) for the proposed architecture, capability boundaries, domain invariants and release gates. Use [`FULL_SCALE_EXECUTION_BACKLOG.md`](FULL_SCALE_EXECUTION_BACKLOG.md) to select the next dependency-ready batch. The backlog is prepared, not implemented; no item is complete until its test and evidence contract passes.
 
-**Track B:** first complete the blockers and verification checklist in [`APPDEPLOY_STAGING.md`](APPDEPLOY_STAGING.md), notably interrupted task-migration recovery, stale task-index handling, account isolation and per-task create/update/delete verification. These routes exist in the staging source but are not yet proven by an executed E2E run.
+**Track A:** the first durable-system gate is a disposable, authenticated PostgreSQL staging environment: confirm real Better Auth sign-in/session lifecycle, auth-schema preflight, migration application/idempotency, browser snapshot recovery and two-account isolation. The shipped repository environment still has auth and database provisioning disabled. Do not expose the snapshot bridge as a production feature on the strength of local PGlite tests alone.
 
-**Release discipline:** prepare one complete release candidate; don't deploy for documentation edits or isolated source changes. Run static/source checks, reconcile docs and regression definitions, and perform one final AppDeploy deployment only when the final candidate is ready.
+**Track B:** continue only as a local-first UX/smoke surface using the v16 acceptance cases in [`APPDEPLOY_STAGING.md`](APPDEPLOY_STAGING.md). Cloud snapshots, auto-sync, and task-level cloud mode remain deferred unless they become an explicit product requirement and can pass an authenticated E2E gate.
+
+**Release discipline:** no deployment for documentation edits or isolated source changes. Batch code, tests, migrations, operational notes and docs into one candidate; inspect executed test transcripts before making a capability or readiness claim.
 
 
 ## Deployment-capacity discipline
@@ -135,7 +137,7 @@ The AppDeploy live source is updated through the deployment operation; there is 
 
 Track B was reported to stop rendering. External browser evidence confirmed a blank v7 viewport even though AppDeploy status was ready and the QA error lists were empty. Source inspection found a deterministic temporal-dead-zone failure: currentUserId appeared in the first effect dependency array before its const declaration. v8 made the caught rendering error visible; v9 moved the declaration above first use and a fresh external screenshot showed the normal Taskora shell.
 
-Current Track B deployed revision: 1792338457910 (v14). The v12 integrity checks, v13 Settings cleanup and v14 cloud-status correction are documented separately below. AppDeploy reports ready with no frontend/backend/network errors, but the executed E2E result remains unavailable/unreturned; the app is not E2E-verified.
+At the time of the blank-screen incident, Track B was at revision 1792338457910 (v14). The v12 integrity checks, v13 Settings cleanup and v14 cloud-status correction are documented as historical milestones below. The current Track B baseline is recorded in the v16 local-first update at the end of this roadmap.
 
 Use [the version and capability matrix](VERSION_CAPABILITY_MATRIX.md) as the complete target map. A v13 read-only browser check confirms the Settings primary controls render and advanced disclosures start collapsed. The next gate remains authenticated task CRUD, snapshot round-trip, migration recovery and two-account isolation; do not treat clean status as a substitute for those workflows.
 
@@ -158,3 +160,12 @@ The deployed AppDeploy Track B revision is `1792327799498`. Settings now exposes
 ### V14 cloud-status correctness update — 2026-10-18
 
 The deployed Track B revision is `1792338457910`. Remote revision `0` is now treated as a real empty account only after a valid workspace response; failed or invalid reads show `Unknown` and explicit retry guidance. Settings visibly places account sync and local backup before advanced storage and diagnostics. Added a QA-fault regression definition for a simulated `GET /api/workspace` 503. E2E execution is still unconfirmed, so authenticated cloud persistence, migration recovery and two-account isolation remain release gates.
+
+
+### v16 local-first reliability update — 2026-10-18
+
+- **Current Track B revision:** `1792339899173`, status `ready`.
+- **Implemented in deployed source:** browser-local task flow no longer waits on remote cloud-mode verification; task input and schedule guardrails are strengthened; List status/priority filtering and Clear filters are available; Cloud sync and per-task cloud mode are explicitly deferred; JSON backup remains the portable save/restore path.
+- **QA evidence:** the returned deployment snapshot has empty frontend/network error arrays and no frontend/backend errors. The actual E2E execution result was not returned.
+- **Immediate priority:** execute the current local-first tests and inspect the results. Do not spend more deployment capacity investigating remote snapshots unless remote sync becomes a product requirement.
+- **Boundary:** this is Track B only. Track A's GitHub implementation and its persistence architecture are separate.
