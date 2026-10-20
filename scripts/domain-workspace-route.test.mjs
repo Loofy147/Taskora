@@ -106,3 +106,14 @@ test("backlog bootstrap assigns only untouched seeds and does not overwrite user
   assert.match(source, /expectedVersion:\s*latest\.version/);
   assert.match(source, /assigneeIds:\s*\[actorUserId\]/);
 });
+
+
+test("two-account browser E2E is deferred from personal launch without weakening authorization", async () => {
+  const source = await read("src/routes/workspace.tsx");
+  assert.match(source, /\[P2\] Verify team isolation before enabling shared workspaces/);
+  assert.match(source, /not a blocker for the initial personal workspace/);
+  assert.match(source, /automated negative-access tests in CI/);
+  assert.match(source, /legacyIsolationSeed && latest\.version === 1/);
+  assert.match(source, /legacyIsolationSeed &&\s*latest\.version === 2/);
+  assert.match(source, /expectedVersion:\s*latest\.version/);
+});
