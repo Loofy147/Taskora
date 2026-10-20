@@ -46,3 +46,33 @@ test("create command schemas require UUID idempotency keys and reject extra fiel
     status: "todo", priority: "medium", dueDate: null, schedule: null, assigneeIds: [], requestId, actorId: "forged",
   }).success, false);
 });
+
+
+test("actual engineering backlog is created as authenticated, durable Taskora records", async () => {
+  const source = await read("src/routes/workspace.tsx");
+  assert.match(source, /Actual Taskora execution backlog/);
+  assert.match(source, /Taskora Product Development/);
+  assert.match(source, /PRODUCT_BACKLOG_PROJECT_REQUEST_ID/);
+  assert.match(source, /for \(const seed of PRODUCT_BACKLOG_TASKS\)/);
+  assert.match(source, /createTaskoraProject\(\{ data:/);
+  assert.match(source, /createTaskoraTask\(\{ data:/);
+  assert.match(source, /requestId: seed\.requestId/);
+  assert.match(source, /Successfully completed records remain saved/);
+  assert.match(source, /same idempotency keys/);
+  assert.doesNotMatch(source, /localStorage|@\/lib\/store|useApp\(/);
+
+  const requestIds = [...source.matchAll(/requestId: "([0-9a-f-]{36})"/g)].map((match) => match[1]);
+  assert.equal(requestIds.length, 15, "every actual development task has a stable request key");
+  assert.equal(new Set(requestIds).size, requestIds.length, "task idempotency keys are unique");
+  for (const requestId of requestIds) {
+    assert.match(requestId, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+  }
+
+  for (const title of [
+    "Configure durable PostgreSQL and Better Auth on Vercel preview",
+    "Prove two-account workspace isolation",
+    "Verify durable save and reload recovery",
+    "Run AppDeploy v16 independent staging acceptance",
+    "Complete release-gate review before production rollout",
+  ]) assert.ok(source.includes(title), `missing real acceptance task: ${title}`);
+});
