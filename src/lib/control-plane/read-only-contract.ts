@@ -170,7 +170,7 @@ export function authorizeReadOnlyControlAction(input: {
  */
 export function normalizeReadOnlyControlObservation(
   raw: unknown,
-  options: NormalizeReadOnlyObservationOptions = {},
+  options: NormalizeReadOnlyObservationOptions,
 ): ReadOnlyControlSnapshot {
   const input = asRecord(raw);
   if (!input) throw new Error("Control observation must be an object.");
