@@ -28,6 +28,7 @@ Optimize the first successful task entry, but keep data ownership and operationa
 **Future purpose:** a private operator console that reads verified platform state and, only through a separately implemented restricted server-side gateway, submits named and audited operational commands to the scale plane.
 
 - Keep the AppDeploy application useful when Vercel cloud setup is unavailable; it must not depend on Taskora's production database to display personal tasks or access its own settings.
+- Provide a direct "Open personal board" path from the Vercel login page and sidebar so an unavailable cloud sign-in is not a dead end. The UI must state that records remain separate and do not automatically sync.
 - Treat personal records as browser-local and independent unless a specific transfer is explicitly requested and verified.
 - Preserve the last inspected source snapshot 1792339899173 as the documented baseline until a deliberate AppDeploy change-set is prepared.
 - In that exact snapshot, CLOUD_SNAPSHOT_ENABLED and CLOUD_TASK_STORAGE_ENABLED are false. The source uses browser storage and local JSON backup; status reported Ready but did not prove authenticated E2E.

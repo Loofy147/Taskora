@@ -24,6 +24,10 @@ test("login page exposes configured providers, a disabled-auth message, and safe
   assert.match(source, /Sign-in is disabled for this deployment/);
   assert.match(source, /role="alert"/);
   assert.match(source, /useCurrentUserState/);
+  assert.match(source, /https:\/\/taskora-ube0f6\.v2\.appdeploy\.ai\//);
+  assert.match(source, /Open personal board/);
+  assert.match(source, /records do not sync between deployments/);
+  assert.match(source, /rel="noopener noreferrer"/);
 });
 
 test("generated route tree registers the login and Better Auth catch-all routes", async () => {
@@ -42,4 +46,9 @@ test("authenticated deployments show real account controls instead of the sample
   assert.match(source, /useCurrentUserState/);
   assert.match(source, /<UserButton\s*\/>/);
   assert.match(source, /to="\/login"/);
+  assert.match(source, /https:\/\/taskora-ube0f6\.v2\.appdeploy\.ai\//);
+  assert.match(source, /Personal board/);
+  assert.match(source, /Records stay separate; no automatic sync/);
+  assert.match(source, /target="_blank"/);
+  assert.match(source, /rel="noopener noreferrer"/);
 });
