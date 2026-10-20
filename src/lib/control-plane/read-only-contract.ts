@@ -179,9 +179,10 @@ export function normalizeReadOnlyControlObservation(
   const deploymentId = nonEmptyString(input.deploymentId);
   const environment = enumValue(input.environment, ["production", "preview"] as const);
   const deploymentUrl = secureHttpsUrl(input.deploymentUrl);
-  const expectedProjectId = nonEmptyString(options.expectedProjectId);
-  const allowedDeploymentHosts = Array.isArray(options.allowedDeploymentHosts)
-    ? options.allowedDeploymentHosts
+  const expectedProjectId = nonEmptyString(options?.expectedProjectId);
+  const configuredAllowedHosts = options?.allowedDeploymentHosts;
+  const allowedDeploymentHosts = Array.isArray(configuredAllowedHosts)
+    ? configuredAllowedHosts
         .map((host) => typeof host === "string" ? exactAllowedHostname(host.trim()) : null)
         .filter((host): host is string => host !== null)
     : [];
