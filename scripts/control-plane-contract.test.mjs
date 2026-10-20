@@ -67,10 +67,10 @@ test("stale, future and invalid observation times are explicitly distinguished",
 });
 
 test("invalid targets fail closed and reject non-HTTPS URLs", () => {
-  assert.throws(() => normalizeSample(sample({ projectId: " " })), /invalid project/);
-  assert.throws(() => normalizeSample(sample({ environment: "development" })), /invalid project/);
-  assert.throws(() => normalizeSample(sample({ deploymentUrl: "http://localhost" })), /invalid project/);
-  assert.throws(() => normalizeSample(sample({ deploymentUrl: "https://user:pass@host.example" })), /invalid project/);
+  assert.throws(() => normalizeSample(sample({ projectId: " " })), /does not match the configured project/);
+  assert.throws(() => normalizeSample(sample({ environment: "development" })), /invalid deployment, environment/);
+  assert.throws(() => normalizeSample(sample({ deploymentUrl: "http://localhost" })), /invalid deployment, environment/);
+  assert.throws(() => normalizeSample(sample({ deploymentUrl: "https://user:pass@host.example" })), /invalid deployment, environment/);
 });
 
 test("project and deployment hostname must match the server-configured target allow-list", () => {
