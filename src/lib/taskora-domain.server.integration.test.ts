@@ -315,4 +315,40 @@ describe("normalized Taskora domain integration (embedded PGlite only)", () => {
     assert.notEqual(distinctActor.id, first.id);
   });
 
+
+  it("updates task details, deadline, timezone schedule, and assignees atomically", async () => {
+    const ws = await seedWorkspace();
+    const project = await domain.createProject(ws.owner, { workspaceId: ws.id, name: "Task editor", description: "" });
+    const task = await domain.createTask(ws.owner, taskInput(ws.id, project.id, { assigneeIds: [ws.member] }));
+
+    const updated = await domain.updateTask(ws.owner, task.id, {
+      workspaceId: ws.id,
+      taskId: task.id,
+      expectedVersion: task.version,
+      title: "Configure Taskora preview",
+      description: "Verify persistence and identity isolation.",
+      dueDate: "2035-10-22",
+      schedule: {
+        startsAt: "2035-10-22T08:00:00.000Z",
+        endsAt: "2035-10-22T09:00:00.000Z",
+        timeZone: "Africa/Algiers",
+      },
+      assigneeIds: [ws.owner],
+    });
+
+    assert.equal(updated.version, task.version + 1);
+    assert.equal(updated.title, "Configure Taskora preview");
+    assert.equal(updated.description, "Verify persistence and identity isolation.");
+    assert.equal(updated.dueDate, "2035-10-22");
+    assert.deepEqual(updated.schedule, {
+      startsAt: "2035-10-22T08:00:00.000Z",
+      endsAt: "2035-10-22T09:00:00.000Z",
+      timeZone: "Africa/Algiers",
+    });
+    assert.deepEqual(updated.assigneeIds, [ws.owner]);
+
+    const reloaded = await domain.getTask(ws.owner, { workspaceId: ws.id, taskId: task.id });
+    assert.deepEqual(reloaded, updated);
+  });
+
 });
