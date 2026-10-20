@@ -5,6 +5,7 @@ import {
   createOrGetTaskoraPersonalWorkspace,
   createTaskoraProject,
   createTaskoraTask,
+  getTaskoraTask,
   listTaskoraProjects,
   listTaskoraTasks,
   updateTaskoraTask,
@@ -138,6 +139,30 @@ const PRODUCT_BACKLOG_TASKS: readonly ProductBacklogSeed[] = [
   },
 ];
 
+
+function toDateTimeLocalInZone(value: string, timeZone: string): string {
+  const instant = new Date(value);
+  if (!Number.isFinite(instant.getTime())) return "";
+  try {
+    const fields: Record<string, string> = {};
+    for (const part of new Intl.DateTimeFormat("en-CA", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(instant)) {
+      if (["year", "month", "day", "hour", "minute"].includes(part.type)) fields[part.type] = part.value;
+    }
+    if (!["year", "month", "day", "hour", "minute"].every((field) => fields[field])) return "";
+    return fields.year + "-" + fields.month + "-" + fields.day + "T" + fields.hour + ":" + fields.minute;
+  } catch {
+    return "";
+  }
+}
+
 const messageFor = (error: unknown) =>
   error instanceof Error && error.message.trim()
     ? error.message
@@ -171,10 +196,10 @@ function WorkspacePage() {
       </main>
     );
   }
-  return <WorkspaceContent key={user.id} />;
+  return <WorkspaceContent key={user.id} actorUserId={user.id} />;
 }
 
-function WorkspaceContent() {
+function WorkspaceContent({ actorUserId }: { actorUserId: string }) {
   const [workspace, setWorkspace] = useState<PersonalWorkspace | null>(null);
   const [projects, setProjects] = useState<DomainProject[]>([]);
   const [tasks, setTasks] = useState<DomainTask[]>([]);
@@ -185,6 +210,16 @@ function WorkspaceContent() {
   const [notice, setNotice] = useState<string | null>(null);
   const [needsRefresh, setNeedsRefresh] = useState(false);
   const [search, setSearch] = useState("");
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editTimeZone, setEditTimeZone] = useState(browserTimeZone);
+  const [editAssignment, setEditAssignment] = useState<"unchanged" | "self" | "unassigned">("unchanged");
+  const [editDraft, setEditDraft] = useState({
+    title: "",
+    description: "",
+    dueDate: "",
+    scheduleStart: "",
+    scheduleEnd: "",
+  });
 
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
@@ -309,7 +344,7 @@ function WorkspaceContent() {
       // request key is stable, so rerunning after a network failure does not dupe
       // already-confirmed projects/tasks and does not overwrite later edits.
       for (const seed of PRODUCT_BACKLOG_TASKS) {
-        await createTaskoraTask({ data: {
+        const createdOrReplayed = await createTaskoraTask({ data: {
           workspaceId: workspace.workspaceId,
           projectId: project.id,
           title: seed.title,
@@ -321,6 +356,23 @@ function WorkspaceContent() {
           assigneeIds: [],
           requestId: seed.requestId,
         }});
+
+        // A create idempotency replay returns the original create response. Read
+        // the canonical current record before attempting any follow-up write.
+        // Only claim an untouched (version 1, unassigned) seed for the workspace
+        // owner; never reset status, priority, dates or later assignment edits.
+        const latest = await getTaskoraTask({ data: {
+          workspaceId: workspace.workspaceId,
+          taskId: createdOrReplayed.id,
+        }});
+        if (latest.version === 1 && latest.assigneeIds.length === 0) {
+          await updateTaskoraTask({ data: {
+            workspaceId: workspace.workspaceId,
+            taskId: latest.id,
+            expectedVersion: latest.version,
+            assigneeIds: [actorUserId],
+          }});
+        }
       }
 
       const refreshed = await refresh(false, false);
@@ -337,8 +389,27 @@ function WorkspaceContent() {
     }
   }
 
-  async function updateTask(task: DomainTask, patch: Partial<Pick<DomainTask, "status" | "priority">>) {
-    if (!workspace || busy) return;
+  function beginEditTask(task: DomainTask) {
+    setEditingTaskId(task.id);
+    const timeZone = task.schedule?.timeZone ?? browserTimeZone();
+    setEditTimeZone(timeZone);
+    setEditAssignment("unchanged");
+    setEditDraft({
+      title: task.title,
+      description: task.description,
+      dueDate: task.dueDate ?? "",
+      scheduleStart: task.schedule ? toDateTimeLocalInZone(task.schedule.startsAt, timeZone) : "",
+      scheduleEnd: task.schedule ? toDateTimeLocalInZone(task.schedule.endsAt, timeZone) : "",
+    });
+    setError(null);
+    setNotice(null);
+  }
+
+  async function updateTask(
+    task: DomainTask,
+    patch: Partial<Pick<DomainTask, "title" | "description" | "status" | "priority" | "dueDate" | "schedule" | "assigneeIds">>,
+  ): Promise<boolean> {
+    if (!workspace || busy) return false;
     setBusy("task:" + task.id); setError(null); setNotice(null);
     try {
       const updated = await updateTaskoraTask({ data: {
@@ -346,10 +417,37 @@ function WorkspaceContent() {
       }});
       setTasks((current) => current.map((t) => t.id === updated.id ? updated : t));
       setNotice("Task update saved.");
+      return true;
     } catch (cause) {
       setError(messageFor(cause));
       if (cause instanceof Error && /version|changed since/i.test(cause.message)) void refresh(false, false);
+      return false;
     } finally { setBusy(null); }
+  }
+
+  async function saveTaskDetails(task: DomainTask) {
+    if (!editDraft.title.trim()) {
+      setError("Task title cannot be empty.");
+      return;
+    }
+    const scheduleResult = buildScheduleInterval(editDraft.scheduleStart, editDraft.scheduleEnd, editTimeZone);
+    if (!scheduleResult.ok) {
+      setError(scheduleResult.message);
+      setNotice(null);
+      return;
+    }
+    const patch: Partial<Pick<DomainTask, "title" | "description" | "dueDate" | "schedule" | "assigneeIds">> = {
+      title: editDraft.title.trim(),
+      description: editDraft.description,
+      dueDate: editDraft.dueDate || null,
+      schedule: scheduleResult.schedule,
+    };
+    if (editAssignment === "self") patch.assigneeIds = [actorUserId];
+    if (editAssignment === "unassigned") patch.assigneeIds = [];
+    if (await updateTask(task, patch)) {
+      setEditingTaskId(null);
+      setEditAssignment("unchanged");
+    }
   }
 
   async function archiveTask(task: DomainTask) {
@@ -444,11 +542,34 @@ function WorkspaceContent() {
           </div>
           {loading && !workspace ? <p className="py-5 text-sm text-muted" role="status">Loading your server workspace…</p> : (
             <div className="grid gap-2">
-              {visibleTasks.map((task) => <article key={task.id} className="grid gap-3 rounded-xl border border-line p-3 md:grid-cols-[minmax(0,1fr)_auto_auto_auto] md:items-center">
-                <div className="min-w-0"><h3 className="font-medium">{task.title}</h3><p className="mt-0.5 text-sm text-muted">{projectNames.get(task.projectId) ?? "Unknown project"} · {task.dueDate ?? "No deadline"}</p>{task.description && <p className="mt-2 whitespace-pre-wrap text-sm">{task.description}</p>}{task.schedule && <p className="mt-2 text-sm text-muted">Scheduled: {formatScheduledInstant(task.schedule.startsAt, task.schedule.timeZone)} – {formatScheduledInstant(task.schedule.endsAt, task.schedule.timeZone)} ({task.schedule.timeZone})</p>}</div>
+              {visibleTasks.map((task) => <article key={task.id} className="grid gap-3 rounded-xl border border-line p-3 md:grid-cols-[minmax(0,1fr)_auto_auto_auto_auto] md:items-center">
+                <div className="min-w-0">
+                  <h3 className="font-medium">{task.title}</h3>
+                  <p className="mt-0.5 text-sm text-muted">{projectNames.get(task.projectId) ?? "Unknown project"} · {task.dueDate ?? "No deadline"} · {task.assigneeIds.length ? (task.assigneeIds.includes(actorUserId) ? "Assigned to you" : task.assigneeIds.length + " assignee(s)") : "Unassigned"}</p>
+                  {task.description && <p className="mt-2 whitespace-pre-wrap text-sm">{task.description}</p>}
+                  {task.schedule && <p className="mt-2 text-sm text-muted">Scheduled: {formatScheduledInstant(task.schedule.startsAt, task.schedule.timeZone)} – {formatScheduledInstant(task.schedule.endsAt, task.schedule.timeZone)} ({task.schedule.timeZone})</p>}
+                </div>
                 <label className="grid gap-1 text-xs text-muted">Status<select aria-label={"Status for " + task.title} value={task.status} onChange={(e) => void updateTask(task, { status: e.target.value as TaskStatus })} disabled={busy !== null} className="h-10 rounded-lg border border-line bg-bg px-2 text-sm text-fg">{STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}</select></label>
                 <label className="grid gap-1 text-xs text-muted">Priority<select aria-label={"Priority for " + task.title} value={task.priority} onChange={(e) => void updateTask(task, { priority: e.target.value as TaskPriority })} disabled={busy !== null} className="h-10 rounded-lg border border-line bg-bg px-2 text-sm text-fg">{PRIORITIES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}</select></label>
+                <button type="button" onClick={() => editingTaskId === task.id ? setEditingTaskId(null) : beginEditTask(task)} disabled={busy !== null} className="min-h-10 rounded-lg border border-line px-3 text-sm font-medium disabled:opacity-50">{editingTaskId === task.id ? "Close editor" : "Edit details"}</button>
                 <button type="button" onClick={() => void archiveTask(task)} disabled={busy !== null} className="min-h-10 rounded-lg border border-line px-3 text-sm font-medium disabled:opacity-50">{busy === "archive:" + task.id ? "Archiving…" : "Archive"}</button>
+                {editingTaskId === task.id && <form onSubmit={(event) => { event.preventDefault(); void saveTaskDetails(task); }} className="grid gap-3 rounded-xl border border-line bg-bg/40 p-3 md:col-span-5">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="grid gap-1 text-sm">Task title<input required maxLength={500} value={editDraft.title} onChange={(e) => setEditDraft((current) => ({ ...current, title: e.target.value }))} disabled={busy !== null} className="h-11 rounded-lg border border-line bg-bg px-3" /></label>
+                    <label className="grid gap-1 text-sm">Due date<input type="date" value={editDraft.dueDate} onChange={(e) => setEditDraft((current) => ({ ...current, dueDate: e.target.value }))} disabled={busy !== null} className="h-11 rounded-lg border border-line bg-bg px-3" /></label>
+                  </div>
+                  <label className="grid gap-1 text-sm">Description<textarea maxLength={100000} rows={3} value={editDraft.description} onChange={(e) => setEditDraft((current) => ({ ...current, description: e.target.value }))} disabled={busy !== null} className="rounded-lg border border-line bg-bg p-3" /></label>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="grid gap-1 text-sm">Assignment<select value={editAssignment} onChange={(e) => setEditAssignment(e.target.value as typeof editAssignment)} disabled={busy !== null} className="h-11 rounded-lg border border-line bg-bg px-3"><option value="unchanged">Keep current assignment</option><option value="self">Assign to me</option><option value="unassigned">Unassigned</option></select></label>
+                    <div className="grid gap-1 text-sm"><span>Schedule timezone</span><div className="flex min-h-11 items-center rounded-lg border border-line px-3 text-sm">{editTimeZone}</div></div>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="grid gap-1 text-sm">Start date and time<input type="datetime-local" value={editDraft.scheduleStart} onChange={(e) => setEditDraft((current) => ({ ...current, scheduleStart: e.target.value }))} disabled={busy !== null} className="h-11 min-w-0 rounded-lg border border-line bg-bg px-3" /></label>
+                    <label className="grid gap-1 text-sm">End date and time<input type="datetime-local" value={editDraft.scheduleEnd} onChange={(e) => setEditDraft((current) => ({ ...current, scheduleEnd: e.target.value }))} disabled={busy !== null} className="h-11 min-w-0 rounded-lg border border-line bg-bg px-3" /></label>
+                  </div>
+                  <p className="text-xs text-muted">Leave both schedule fields empty to remove a schedule. Ambiguous or nonexistent local times are rejected. Existing assignee changes are preserved unless you explicitly choose an option.</p>
+                  <div className="flex flex-wrap justify-end gap-2"><button type="button" onClick={() => setEditingTaskId(null)} disabled={busy !== null} className="min-h-10 rounded-lg border border-line px-3 text-sm">Cancel</button><button type="submit" disabled={busy !== null || !editDraft.title.trim()} className="min-h-10 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-fg disabled:opacity-50">{busy === "task:" + task.id ? "Saving…" : "Save details"}</button></div>
+                </form>}
               </article>)}
               {!loading && visibleTasks.length === 0 && <p className="py-5 text-sm text-muted">{search.trim() ? "No tasks match the current-page search." : "No tasks yet. Create your first task above."}</p>}
             </div>
