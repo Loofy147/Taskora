@@ -2,7 +2,7 @@
 
 **Decision ID:** ADR-TASKORA-001  
 **Reviewed:** 2026-10-20  
-**Status:** Architecture direction accepted for implementation planning; controller implementation and production authority are **not enabled**.  
+**Status:** Two-plane direction accepted; a tested read-only contract scaffold is included on the feature branch. No controller endpoint, live provider adapter, or production authority is enabled.  
 **Evidence rule:** This document distinguishes verified current state from target behavior. A deployment marked Ready is not an end-to-end acceptance result.
 
 ## 1. Decision
@@ -141,16 +141,23 @@ Use the narrowest credential that the provider actually supports. Verify provide
 
 ## 8. Delivery phases and exit gates
 
-### Phase 0 — Document the boundary (current)
+### Phase 0 — Document the boundary (complete)
 
 - [x] Separate the intended personal and scale roles.
 - [x] Record source/deployment evidence and explicit unknowns.
 - [x] Prohibit assumed sync and unrestricted cross-deployment credentials.
-- [ ] Keep implementation status as **not enabled** until each gate below is proven.
+- [x] Keep controller implementation and production authority explicitly marked **not enabled**.
 
 ### Phase 1 — Read-only operator visibility
 
-Implement the minimum authenticated console/gateway needed to view exact deployment ID, target environment, source SHA, CI summary, runtime-error window and last refresh time. Do not expose decrypted secrets. No mutation endpoints in this phase.
+**Implementation status (2026-10-20): contract groundwork only.** The feature branch now defines a versioned, sanitized read-only response contract, a fail-closed action-authorization helper, freshness classification and automated tests. See [READ_ONLY_CONTROL_CONTRACT.md](READ_ONLY_CONTROL_CONTRACT.md). This does **not** mean the operator console or gateway is live.
+
+- [x] Define a versioned status shape for target identity, deployment state, checks, runtime-error observation and freshness.
+- [x] Define the read-only action allow-list and fail-closed authorization decisions.
+- [x] Test secret-field stripping, invalid targets, unknown status, stale/future observations and unauthorized actions.
+- [ ] Implement an authenticated server route and server-side provider adapter after hosting, verified operator identity, secret storage and provider scopes are proven.
+- [ ] Verify the route against real read-only provider data and confirm no mutation route/action exists.
+- [ ] Add an operator UI that labels source, environment, observation timestamp and stale/error state without depending on the scale app's customer task APIs.
 
 Exit only when unauthorized requests are denied, stale/error states are explicit, audit reads are authorized, and the console remains usable if the scale app's task APIs fail.
 

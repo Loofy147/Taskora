@@ -143,6 +143,12 @@ const PRODUCT_BACKLOG_TASKS: readonly ProductBacklogSeed[] = [
     description: "Acceptance: document and present Vercel as the durable authenticated workspace and AppDeploy as the low-friction personal/experimental surface; keep the local board reachable without cloud setup; explain when sign-in is needed; never claim cross-deployment sync; link the deployment contract and provide a tested export/import path before moving records between tracks.",
     priority: "medium",
   },
+  {
+    requestId: "c2c0d7d0-3f0a-4aa1-aafa-0a1e0a6d0018",
+    title: "[P1] Implement authenticated read-only deployment status visibility",
+    description: "Acceptance: expose an authenticated read-only status API for exact Vercel project/deployment identity, source commit, CI/check summary, recent runtime-error window and observation freshness; derive operator identity server-side; use an allow-listed provider adapter; return no secrets; fail closed when authentication or provider configuration is absent; prove no mutation actions are reachable.",
+    priority: "high",
+  },
 ];
 
 
