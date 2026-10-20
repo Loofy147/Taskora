@@ -137,6 +137,12 @@ const PRODUCT_BACKLOG_TASKS: readonly ProductBacklogSeed[] = [
     description: "Acceptance: review every P0 gate, confirm all release checks are green with linked evidence, verify database restore and rollback, independently review security/isolation, and only then approve a deliberate production deployment.",
     priority: "high",
   },
+  {
+    requestId: "c2c0d7d0-3f0a-4aa1-aafa-0a1e0a6d0017",
+    title: "[P1] Separate the durable cloud workspace from the quick-start personal board",
+    description: "Acceptance: document and present Vercel as the durable authenticated workspace and AppDeploy as the low-friction personal/experimental surface; keep the local board reachable without cloud setup; explain when sign-in is needed; never claim cross-deployment sync; link the deployment contract and provide a tested export/import path before moving records between tracks.",
+    priority: "medium",
+  },
 ];
 
 
