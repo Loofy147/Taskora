@@ -62,7 +62,7 @@ test("actual engineering backlog is created as authenticated, durable Taskora re
   assert.doesNotMatch(source, /localStorage|@\/lib\/store|useApp\(/);
 
   const requestIds = [...source.matchAll(/requestId: "([0-9a-f-]{36})"/g)].map((match) => match[1]);
-  assert.equal(requestIds.length, 15, "every actual development task has a stable request key");
+  assert.equal(requestIds.length, 16, "every actual development task has a stable request key");
   assert.equal(new Set(requestIds).size, requestIds.length, "task idempotency keys are unique");
   for (const requestId of requestIds) {
     assert.match(requestId, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
@@ -74,6 +74,7 @@ test("actual engineering backlog is created as authenticated, durable Taskora re
     "Verify durable save and reload recovery",
     "Run AppDeploy v16 independent staging acceptance",
     "Complete release-gate review before production rollout",
+    "Separate the durable cloud workspace from the quick-start personal board",
   ]) assert.ok(source.includes(title), `missing real acceptance task: ${title}`);
 });
 
