@@ -28,13 +28,13 @@ export type PortfolioTaskSeed = {
   sourceUrl?: string;
 };
 
-const PROJECT_REQUEST_PREFIX = "e3c0d7d0-3f0a-4aa1-aafa-0a1e0a6d";
-const TASK_REQUEST_PREFIX = "e4c0d7d0-3f0a-4aa1-aafa-0a1e0a6d";
+const PROJECT_REQUEST_PREFIX = "e3c0d7d0-3f0a-4aa1-aafa-";
+const TASK_REQUEST_PREFIX = "e4c0d7d0-3f0a-4aa1-aafa-";
 function project(key: number, value: Omit<PortfolioProjectSeed, "requestId">): PortfolioProjectSeed {
-  return { ...value, requestId: PROJECT_REQUEST_PREFIX + String(key).padStart(4, "0") };
+  return { ...value, requestId: PROJECT_REQUEST_PREFIX + key.toString(16).padStart(12, "0") };
 }
 function task(key: number, value: Omit<PortfolioTaskSeed, "requestId">): PortfolioTaskSeed {
-  return { ...value, requestId: TASK_REQUEST_PREFIX + String(key).padStart(4, "0") };
+  return { ...value, requestId: TASK_REQUEST_PREFIX + key.toString(16).padStart(12, "0") };
 }
 
 const taskoraBrief = "https://app.notion.com/p/3ff4508c33af81249797e2a8560f119c?pvs=204";

@@ -56,7 +56,7 @@ test("migration replaces exact demo fixtures but retains user-created records", 
   const migrated = migratePortfolioState({
     tasks: [
       { id: "task-catalog", projectId: "ecom", title: "Old fixture" },
-      { id: "my-real-task", projectId: "my-project", title: "Actual work", assigneeIds: ["sara"], createdById: "hichem" },
+      { id: "my-real-task", projectId: "ecom", title: "Actual work", assigneeIds: ["sara"], createdById: "hichem" },
     ],
     projects: [
       { id: "ecom", name: "E-commerce Platform", description: "old fixture", status: "active" },
