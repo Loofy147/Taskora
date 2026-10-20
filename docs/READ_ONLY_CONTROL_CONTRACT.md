@@ -29,7 +29,7 @@ A response is a normalized snapshot, not a live promise that every provider quer
 | `checks` | Allow-listed status, valid observation time and HTTPS evidence URL. Missing or unfamiliar state becomes `unknown`. The adapter must aggregate all required checks before it reports `success`. |
 | `runtimeErrors` | Count plus query window and query time, or `null` if the source data is missing or inconsistent. An empty error window is not an E2E pass. |
 
-The normalizer copies only known fields. Unrecognized provider fields—including tokens, secret values, headers or raw payloads—are intentionally discarded. A malformed project/deployment identity, unsupported environment, or non-HTTPS deployment URL raises an error rather than generating a misleading observation.
+The normalizer copies only known fields. Unrecognized provider fields—including tokens, secret values, headers or raw payloads—are intentionally discarded. The caller must supply an exact server-configured project ID and an explicit list of permitted deployment hostnames; missing target policy fails closed. The observed project ID must match exactly and the deployment URL hostname must match one exact hostname (wildcards, arbitrary HTTPS domains, credentials in URLs and non-HTTPS URLs are rejected). These configuration values must be fixed server-side, not derived from request parameters. Unknown provider states become `unknown` rather than `ready`.
 
 ## Read-only action policy
 
@@ -63,7 +63,7 @@ If these conditions cannot be proven in AppDeploy, host the adapter in a dedicat
 - [x] Contract type is versioned and explicitly read-only.
 - [x] Authorization helper fails closed and restricts actions to the static allow-list.
 - [x] Freshness distinguishes current, stale, future and invalid observations.
-- [x] Normalization excludes unknown fields and rejects invalid target identity.
+- [x] Normalization excludes unknown fields, requires a server-configured project ID and exact hostname allow-list, and rejects target mismatch, wildcard hosts and arbitrary HTTPS domains.
 - [x] Automated tests cover policy, timestamps, URL checks, unknown states and redaction.
 - [ ] Add the authenticated HTTP handler and verified provider adapter.
 - [ ] Capture live, timestamped provider observations without exposing credentials.

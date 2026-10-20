@@ -56,6 +56,10 @@ export interface ReadOnlyControlSnapshot {
 }
 
 export interface NormalizeReadOnlyObservationOptions {
+  /** Exact server-configured Vercel project ID; never sourced from the request. */
+  expectedProjectId: string;
+  /** Exact hostnames permitted for this project's deployment URLs. No wildcards. */
+  allowedDeploymentHosts: readonly string[];
   nowMs?: number;
   maxAgeMs?: number;
   maximumFutureSkewMs?: number;
@@ -107,6 +111,15 @@ function secureHttpsUrl(value: unknown): string | null {
   } catch {
     return null;
   }
+}
+
+function exactAllowedHostname(value: string): string | null {
+  // Configuration accepts exact DNS hostnames only: no wildcard, port, path or URL.
+  if (
+    value.length > 253 ||
+    !/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:\.(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?))*$/i.test(value)
+  ) return null;
+  return value.toLowerCase();
 }
 
 function enumValue<T extends string>(
@@ -166,9 +179,30 @@ export function normalizeReadOnlyControlObservation(
   const deploymentId = nonEmptyString(input.deploymentId);
   const environment = enumValue(input.environment, ["production", "preview"] as const);
   const deploymentUrl = secureHttpsUrl(input.deploymentUrl);
+  const expectedProjectId = nonEmptyString(options.expectedProjectId);
+  const allowedDeploymentHosts = Array.isArray(options.allowedDeploymentHosts)
+    ? options.allowedDeploymentHosts
+        .map((host) => typeof host === "string" ? exactAllowedHostname(host.trim()) : null)
+        .filter((host): host is string => host !== null)
+    : [];
+  let deploymentHostname: string | null = null;
+  if (deploymentUrl) {
+    try {
+      deploymentHostname = new URL(deploymentUrl).hostname.toLowerCase();
+    } catch {
+      deploymentHostname = null;
+    }
+  }
 
-  if (!projectId || !deploymentId || !environment || !deploymentUrl) {
-    throw new Error("Control observation has an invalid project, deployment, environment, or HTTPS URL.");
+  if (!expectedProjectId || allowedDeploymentHosts.length === 0) {
+    throw new Error("Control target allow-list is not configured.");
+  }
+  if (!projectId || projectId !== expectedProjectId) {
+    throw new Error("Control observation project does not match the configured project.");
+  }
+  if (!deploymentId || !environment || !deploymentUrl || !deploymentHostname ||
+      !allowedDeploymentHosts.includes(deploymentHostname)) {
+    throw new Error("Control observation has an invalid deployment, environment, or non-allow-listed HTTPS URL.");
   }
 
   const nowMs = options.nowMs ?? Date.now();

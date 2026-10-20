@@ -32,8 +32,15 @@ const sample = (overrides = {}) => ({
   ...overrides,
 });
 
+const normalizeSample = (raw, options = {}) =>
+  normalizeReadOnlyControlObservation(raw, {
+    expectedProjectId: "prj_taskora",
+    allowedDeploymentHosts: ["taskora-preview.vercel.app"],
+    ...options,
+  });
+
 test("status responses copy only the versioned, allow-listed, client-safe fields", () => {
-  const result = normalizeReadOnlyControlObservation(sample(), {
+  const result = normalizeSample(sample(), {
     nowMs: Date.parse("2026-10-20T18:01:00.000Z"),
   });
   assert.equal(result.schemaVersion, 1);
@@ -49,25 +56,44 @@ test("status responses copy only the versioned, allow-listed, client-safe fields
 
 test("stale, future and invalid observation times are explicitly distinguished", () => {
   const nowMs = Date.parse("2026-10-20T18:10:00.000Z");
-  assert.equal(normalizeReadOnlyControlObservation(sample(), { nowMs }).freshness, "stale");
+  assert.equal(normalizeSample(sample(), { nowMs }).freshness, "stale");
   assert.equal(
-    normalizeReadOnlyControlObservation(sample({ observedAt: "2026-10-20T18:20:00.000Z" }), { nowMs }).freshness,
+    normalizeSample(sample({ observedAt: "2026-10-20T18:20:00.000Z" }), { nowMs }).freshness,
     "future",
   );
-  const invalid = normalizeReadOnlyControlObservation(sample({ observedAt: "not-a-time" }), { nowMs });
+  const invalid = normalizeSample(sample({ observedAt: "not-a-time" }), { nowMs });
   assert.equal(invalid.freshness, "unknown");
   assert.equal(invalid.observedAt, null);
 });
 
 test("invalid targets fail closed and reject non-HTTPS URLs", () => {
-  assert.throws(() => normalizeReadOnlyControlObservation(sample({ projectId: " " })), /invalid project/);
-  assert.throws(() => normalizeReadOnlyControlObservation(sample({ environment: "development" })), /invalid project/);
-  assert.throws(() => normalizeReadOnlyControlObservation(sample({ deploymentUrl: "http://localhost" })), /invalid project/);
-  assert.throws(() => normalizeReadOnlyControlObservation(sample({ deploymentUrl: "https://user:pass@host.example" })), /invalid project/);
+  assert.throws(() => normalizeSample(sample({ projectId: " " })), /invalid project/);
+  assert.throws(() => normalizeSample(sample({ environment: "development" })), /invalid project/);
+  assert.throws(() => normalizeSample(sample({ deploymentUrl: "http://localhost" })), /invalid project/);
+  assert.throws(() => normalizeSample(sample({ deploymentUrl: "https://user:pass@host.example" })), /invalid project/);
+});
+
+test("project and deployment hostname must match the server-configured target allow-list", () => {
+  assert.throws(
+    () => normalizeSample(sample({ projectId: "prj_attacker" })),
+    /does not match the configured project/,
+  );
+  assert.throws(
+    () => normalizeSample(sample({ deploymentUrl: "https://attacker.example" })),
+    /non-allow-listed HTTPS URL/,
+  );
+  assert.throws(
+    () => normalizeReadOnlyControlObservation(sample()),
+    /allow-list is not configured/,
+  );
+  assert.throws(
+    () => normalizeSample(sample(), { allowedDeploymentHosts: ["*.vercel.app"] }),
+    /allow-list is not configured/,
+  );
 });
 
 test("unknown provider status is never upgraded to a healthy state", () => {
-  const result = normalizeReadOnlyControlObservation(
+  const result = normalizeSample(
     sample({
       deploymentState: "mystery",
       checks: { state: "maybe", observedAt: "broken", url: "javascript:alert(1)" },
@@ -83,7 +109,7 @@ test("unknown provider status is never upgraded to a healthy state", () => {
 });
 
 test("malformed or reversed runtime-error windows are not emitted as evidence", () => {
-  const reversed = normalizeReadOnlyControlObservation(
+  const reversed = normalizeSample(
     sample({
       runtimeErrors: {
         count: 3,
@@ -149,6 +175,6 @@ test("disabled, anonymous and non-operator requests are denied", () => {
 });
 
 test("invalid clock policy is rejected rather than silently changing freshness", () => {
-  assert.throws(() => normalizeReadOnlyControlObservation(sample(), { maxAgeMs: 0 }), /maxAgeMs/);
-  assert.throws(() => normalizeReadOnlyControlObservation(sample(), { maximumFutureSkewMs: -1 }), /maximumFutureSkewMs/);
+  assert.throws(() => normalizeSample(sample(), { maxAgeMs: 0 }), /maxAgeMs/);
+  assert.throws(() => normalizeSample(sample(), { maximumFutureSkewMs: -1 }), /maximumFutureSkewMs/);
 });
