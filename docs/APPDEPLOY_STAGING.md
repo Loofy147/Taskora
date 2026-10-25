@@ -1,9 +1,10 @@
 # AppDeploy staging port — status and implementation guide
 
-**Reviewed:** 2026-10-18  
-**App:** `taskora-ube0f6`  
-**URL:** https://taskora-ube0f6.v2.appdeploy.ai/  
-**Latest deployed source revision:** `1792338457910` (v14; Settings order and cloud-status guard deployed; authenticated E2E unverified)  
+**Reviewed:** 2026-10-25  
+**Current preview app:** `taskora-preview-tgnqhs`  
+**URL:** https://taskora-preview-tgnqhs.v2.appdeploy.ai/  
+**Deployed snapshot revision:** `1792952556392` (independent AppDeploy preview; authenticated end-to-end checks not independently reproduced)  
+**Historical instance:** `taskora-ube0f6`, revision `1792338457910` (v14); historical notes below may describe that earlier instance.  
 **Release state:** staging only; not approved for production use.
 
 ## Scope and identity
@@ -11,6 +12,16 @@
 This application is a separate AppDeploy implementation. It is **not** a runtime deployment of the GitHub TanStack Start application, and no source synchronization exists between the two. Changes to this repo do not update AppDeploy, and AppDeploy-only changes do not appear in GitHub `main` unless intentionally ported.
 
 The deployed staging source uses AppDeploy-managed authentication and a key-value database. Its task-level implementation stores each task in an individual database record and keeps a per-account list of task IDs on the owner-scoped workspace record. It is not a normalized PostgreSQL task schema; task comments and attachment metadata remain inside each task record.
+
+## Current preview evidence — 2026-10-25
+
+- **ESTABLISHED:** AppDeploy reports the current preview app `taskora-preview-tgnqhs` as `ready`, deployed snapshot revision `1792952556392`. The QA snapshot reports no frontend or network errors for its generated check.
+- **EXPERIMENTALLY_SUPPORTED — API boundary:** `GET https://api-v2.appdeploy.ai/app/taskora-preview-tgnqhs/api/health` returned `{"status":"ok","app":"Taskora Preview","persistence":"authenticated AppDeploy database","releaseState":"staging"}`. Anonymous `GET /api/tasks` through that API gateway returned HTTP `401`, consistent with the route requiring authentication; this does not prove authenticated task CRUD.
+- **USER_REPORTED:** the user signed into an existing account and successfully created a task in the current preview. This is positive smoke-test evidence for sign-in and task creation, but it does not establish reload persistence, edits, deletion, stale-write handling, or account isolation. Do not put account email addresses or tokens in audit notes.
+- **EXPERIMENTALLY_SUPPORTED — separate audit profile:** the browser profile available to the independent audit was signed out and showed the `Sign in to Taskora` page. No records were created, edited, or deleted by that run. This is consistent with the audit browser having a separate session; it does not contradict the user’s own session.
+- **Diagnostic caveat:** the audit browser previously navigated API paths on the frontend host rather than using the API gateway, generating misleading asset-load telemetry for those navigations. Do not interpret those requests as a reproduced root-page blank-screen defect.
+- **UNKNOWN / OPEN:** authenticated create/edit/status/reload/delete acceptance, stale-revision conflict handling, and two-account isolation remain independently unverified.
+- **Release decision:** staging / hold. A ready deployment plus one user-reported create flow is not production approval.
 
 ## Current implementation inventory
 
