@@ -1,6 +1,6 @@
 # Taskora version and capability matrix
 
-**Updated:** 2026-10-18  
+**Updated:** 2026-10-25  
 **Product tracks:** GitHub source (Track A) and AppDeploy staging (Track B) remain separate implementations. A feature marked implemented on one track is not automatically present on the other. Track-specific test evidence must be recorded independently.
 
 ## Evidence and status vocabulary
@@ -12,15 +12,17 @@
 - **Blocked:** must not be released until its stated dependency or acceptance gate passes.
 - **Unknown:** evidence has not been collected. Do not infer success from deployment readiness, a successful build, or an empty error list.
 
-## Current AppDeploy staging baseline
+## Current AppDeploy staging baseline — 2026-10-25
 
-- **App ID:** taskora-ube0f6
-- **URL:** https://taskora-ube0f6.v2.appdeploy.ai/
-- **Current revision:** 1792338457910 (v14; Settings order and cloud-status guard deployed, authenticated E2E unverified)
-- **Observed result:** v12 deployment status was ready, with live smoke checks for anonymous API denial and malformed backup relationship/duplicate-ID rejection. v13 is ready and its QA snapshot reports no frontend/backend/network errors. A read-only live browser check confirmed the Settings primary controls are visible and the three advanced disclosures are collapsed by default. The four-test definition has one sanity case, but AppDeploy did not return an executed E2E result.
-- **Root cause:** an early effect dependency array referenced currentUserId before its const declaration, triggering a temporal-dead-zone error while rendering. The declaration was moved above its first use.
-- **Still unknown:** the AppDeploy status response did not return an executed E2E result. Real sign-in, migration, data persistence, concurrent edits and account isolation remain unverified end to end.
-- **Track boundary:** v13 is the AppDeploy Track B source. It is not the GitHub application deployed, and AppDeploy-only source changes do not automatically synchronize into GitHub `main`.
+- **App ID:** `taskora-preview-tgnqhs`
+- **URL:** https://taskora-preview-tgnqhs.v2.appdeploy.ai/
+- **Current snapshot:** `1792952556392` (deployment marked `ready`; staging only)
+- **API evidence:** the correct gateway health route returned `status: ok`; anonymous access to the protected task list returned HTTP `401`.
+- **USER_REPORTED:** the user signed in to this preview and created a task. This is positive basic smoke evidence, but not an independently executed end-to-end result.
+- **Independent browser evidence:** the audit browser profile was signed out and showed the sign-in page; no task records were mutated by that run.
+- **Still unknown:** authenticated edit/status/reload/delete, stale-write conflict behavior, migration and account A/B isolation have no independently executed acceptance result for this snapshot.
+- **Historical baseline:** earlier staging notes refer to app `taskora-ube0f6`, snapshot `1792338457910` (v14). Keep those entries as historical evidence for that separate instance.
+- **Track boundary:** AppDeploy and GitHub remain separate implementations. Neither preview status nor user-reported basic smoke validates the GitHub app’s auth/PostgreSQL deployment.
 
 ## Capability matrix
 
