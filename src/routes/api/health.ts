@@ -23,7 +23,7 @@ async function inspectDatabase(): Promise<RuntimeDatabaseState> {
   }
 }
 
-export const Route = createFileRoute("/api/health" as any)({
+export const Route = createFileRoute("/api/health")({
   server: {
     handlers: {
       GET: async () => {
