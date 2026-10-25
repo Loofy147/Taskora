@@ -34,14 +34,14 @@ jobs:
       - name: Run automated tests
         run: npm test
 
-      - name: TypeScript check
-        run: npm run typecheck
-
       - name: Lint
         run: npm run lint
 
-      - name: Production build (migration runner skips without DATABASE_URL)
+      - name: Production build (also regenerates TanStack route types; migration runner skips without DATABASE_URL)
         run: npm run build
+
+      - name: TypeScript check (after route generation)
+        run: npm run typecheck
 
   migration:
     name: Auth-on PostgreSQL migration verification
