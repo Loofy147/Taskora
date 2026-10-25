@@ -4,6 +4,7 @@ import {
   isRuntimeAuthConfigured,
   isRuntimeAuthEnabled,
   resolveDbSource,
+  resolvePostgresPoolOptions,
 } from "../src/lib/runtime-mode.ts";
 
 test("PostgreSQL is the authoritative database whenever a connection URL is present", () => {
@@ -44,4 +45,22 @@ test("Vercel auth is configured only when auth, durable PostgreSQL, and per-app 
 test("local preview retains its prewired auth flow while explicit auth-off still disables it", () => {
   assert.equal(isRuntimeAuthConfigured({ authFlag: undefined, isVercelRuntime: false }), true);
   assert.equal(isRuntimeAuthConfigured({ authFlag: "false", isVercelRuntime: false }), false);
+});
+
+
+test("Vercel uses a bounded pool and short idle timeout by default", () => {
+  assert.deepEqual(resolvePostgresPoolOptions({ isVercelRuntime: true }), {
+    max: 3,
+    idleTimeoutMillis: 10_000,
+    connectionTimeoutMillis: 5_000,
+  });
+});
+
+test("pool sizing overrides are range-checked while local development keeps a larger default", () => {
+  assert.equal(resolvePostgresPoolOptions({ isVercelRuntime: false }).max, 10);
+  assert.equal(resolvePostgresPoolOptions({ isVercelRuntime: true, maxConnections: "5" }).max, 5);
+  assert.throws(
+    () => resolvePostgresPoolOptions({ isVercelRuntime: true, maxConnections: "50" }),
+    /PG_POOL_MAX must be an integer between 1 and 10/,
+  );
 });

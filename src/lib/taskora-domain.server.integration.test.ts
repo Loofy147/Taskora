@@ -265,4 +265,90 @@ describe("normalized Taskora domain integration (embedded PGlite only)", () => {
       (error: unknown) => error instanceof domain.TaskoraDomainError && error.code === "INVALID_CURSOR",
     );
   });
+
+  it("deduplicates concurrent project-create retries and rejects request-key reuse with different input", async () => {
+    const ws = await seedWorkspace();
+    const requestId = randomUUID();
+    const input = { workspaceId: ws.id, name: "Idempotent project", description: "One project only" };
+    const [first, retry] = await Promise.all([
+      domain.createProject(ws.owner, input, requestId),
+      domain.createProject(ws.owner, input, requestId),
+    ]);
+    assert.equal(first.id, retry.id);
+    assert.deepEqual(retry, first);
+    const count = await sql.query<{ count: number }>(
+      "SELECT count(*)::int AS count FROM taskora_projects WHERE workspace_id = $1 AND name = $2",
+      [ws.id, input.name],
+    );
+    assert.equal(count[0].count, 1);
+    await assert.rejects(
+      domain.createProject(ws.owner, { ...input, name: "Different project" }, requestId),
+      (error: unknown) => error instanceof domain.TaskoraDomainError && error.code === "IDEMPOTENCY_KEY_REUSED",
+    );
+  });
+
+  it("deduplicates concurrent task-create retries and rejects payload changes under the same request key", async () => {
+    const ws = await seedWorkspace();
+    const project = await domain.createProject(ws.owner, { workspaceId: ws.id, name: "Retry tasks", description: "" });
+    const requestId = randomUUID();
+    const input = taskInput(ws.id, project.id, { title: "Idempotent task" });
+    const [first, retry] = await Promise.all([
+      domain.createTask(ws.owner, input, requestId),
+      domain.createTask(ws.owner, input, requestId),
+    ]);
+    assert.equal(first.id, retry.id);
+    assert.deepEqual(retry, first);
+    const count = await sql.query<{ count: number }>(
+      "SELECT count(*)::int AS count FROM taskora_tasks WHERE workspace_id = $1 AND title = $2",
+      [ws.id, input.title],
+    );
+    assert.equal(count[0].count, 1);
+    await assert.rejects(
+      domain.createTask(ws.owner, { ...input, title: "Different task" }, requestId),
+      (error: unknown) => error instanceof domain.TaskoraDomainError && error.code === "IDEMPOTENCY_KEY_REUSED",
+    );
+    const distinctActor = await domain.createTask(ws.member, {
+      ...input,
+      title: "Member task",
+      assigneeIds: [],
+    }, requestId);
+    assert.notEqual(distinctActor.id, first.id);
+  });
+
+
+  it("updates task details, deadline, timezone schedule, and assignees atomically", async () => {
+    const ws = await seedWorkspace();
+    const project = await domain.createProject(ws.owner, { workspaceId: ws.id, name: "Task editor", description: "" });
+    const task = await domain.createTask(ws.owner, taskInput(ws.id, project.id, { assigneeIds: [ws.member] }));
+
+    const updated = await domain.updateTask(ws.owner, task.id, {
+      workspaceId: ws.id,
+      taskId: task.id,
+      expectedVersion: task.version,
+      title: "Configure Taskora preview",
+      description: "Verify persistence and identity isolation.",
+      dueDate: "2035-10-22",
+      schedule: {
+        startsAt: "2035-10-22T08:00:00.000Z",
+        endsAt: "2035-10-22T09:00:00.000Z",
+        timeZone: "Africa/Algiers",
+      },
+      assigneeIds: [ws.owner],
+    });
+
+    assert.equal(updated.version, task.version + 1);
+    assert.equal(updated.title, "Configure Taskora preview");
+    assert.equal(updated.description, "Verify persistence and identity isolation.");
+    assert.equal(updated.dueDate, "2035-10-22");
+    assert.deepEqual(updated.schedule, {
+      startsAt: "2035-10-22T08:00:00.000Z",
+      endsAt: "2035-10-22T09:00:00.000Z",
+      timeZone: "Africa/Algiers",
+    });
+    assert.deepEqual(updated.assigneeIds, [ws.owner]);
+
+    const reloaded = await domain.getTask(ws.owner, { workspaceId: ws.id, taskId: task.id });
+    assert.deepEqual(reloaded, updated);
+  });
+
 });

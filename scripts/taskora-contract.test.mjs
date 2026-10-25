@@ -30,7 +30,7 @@ describe("Taskora product contract", () => {
 
   it("exposes validated backup/restore and requires confirmation before replacing state", () => {
     assert.match(read("src/components/views.tsx"), /Export backup/);
-    assert.match(read("src/components/views.tsx"), /Backup validated — confirmation required/);
+    assert.match(read("src/components/views.tsx"), /Backup validated — choose how to apply it/);
     assert.match(read("src/components/views.tsx"), /useApp\.persist\.hasHydrated\(\)/);
     assert.match(read("src/lib/store.ts"), /replaceWorkspaceData: \(data\) =>/);
     assert.match(read("src/lib/workspace-backup.ts"), /WORKSPACE_BACKUP_VERSION = 1/);

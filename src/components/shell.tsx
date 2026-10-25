@@ -116,12 +116,21 @@ function NavBody() {
         })}
       </div>
       <div className="mt-auto p-3">
-        <div className="rounded-2xl bg-primary-soft p-4">
-          <span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-fg">
+        <div className="rounded-2xl border border-line bg-surface p-4">
+          <span className="grid size-9 place-items-center rounded-xl bg-primary-soft text-primary-ink">
             <Users className="size-4" />
           </span>
-          <p className="mt-3 text-sm font-semibold">Better together</p>
-          <p className="text-xs text-muted">Shared tasks. Real progress.</p>
+          <p className="mt-3 text-sm font-semibold">Personal board</p>
+          <p className="mt-1 text-xs text-muted">Quick-start workspace, independent from this deployment.</p>
+          <a
+            href="https://taskora-ube0f6.v2.appdeploy.ai/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-primary px-3 text-sm font-semibold text-primary-fg hover:bg-primary-ink"
+          >
+            Open personal board
+          </a>
+          <p className="mt-2 text-xs text-faint">Records stay separate; no automatic sync.</p>
         </div>
       </div>
     </div>
@@ -184,7 +193,12 @@ function Topbar() {
             isPending ? (
               <span className="px-2 text-xs text-faint" role="status">Checking account…</span>
             ) : user ? (
-              <UserButton />
+              <div className="flex items-center gap-2">
+                <Link to="/workspace" className="inline-flex min-h-10 items-center rounded-xl border border-line px-3 text-sm font-medium hover:bg-chip">
+                  Workspace
+                </Link>
+                <UserButton />
+              </div>
             ) : (
               <Link to="/login" className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-fg hover:bg-primary-ink">
                 Sign in

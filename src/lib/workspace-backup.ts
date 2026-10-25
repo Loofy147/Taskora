@@ -82,7 +82,7 @@ function validMember(value: unknown): value is Member {
     isString(value.name, MAX_NAME, { allowEmpty: false }) &&
     isString(value.role, 200, { allowEmpty: false }) &&
     isString(value.title, 200, { allowEmpty: false }) &&
-    isString(value.email, 320, { allowEmpty: false }) &&
+    isString(value.email, 320) &&
     Number.isInteger(value.tone) && typeof value.tone === "number" && value.tone >= 0 && value.tone <= 3;
 }
 
@@ -126,7 +126,7 @@ function validTask(value: unknown): value is Task {
     isString(value.status) && STATUSES.has(value.status as Task["status"]) &&
     isString(value.priority) && PRIORITIES.has(value.priority as Task["priority"]) &&
     isString(value.projectId, 200, { allowEmpty: false }) &&
-    isDateKey(value.due) &&
+    isString(value.due, 10) && (value.due === "" || isDateKey(value.due)) &&
     Array.isArray(value.assigneeIds) &&
     value.assigneeIds.length <= 1_000 &&
     value.assigneeIds.every((id: unknown) => isString(id, 200, { allowEmpty: false })) &&

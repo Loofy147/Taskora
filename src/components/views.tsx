@@ -528,6 +528,13 @@ export function SettingsView() {
     toast.success("Workspace restored from backup");
   };
 
+  const mergeBackup = () => {
+    if (!pendingImport) return;
+    const counts = useApp.getState().mergeWorkspaceData(pendingImport.data);
+    setPendingImport(null);
+    toast.success(`Merged ${counts.addedProjects} projects and ${counts.addedTasks} tasks; ${counts.enrichedProjects + counts.enrichedTasks} existing records linked to their source. Existing edits and settings were preserved.`);
+  };
+
   return (
     <Page title="Settings" subtitle="Your workspace is stored locally by default. Cloud persistence is an explicit, opt-in choice.">
       <div className="grid max-w-2xl gap-3">
@@ -604,10 +611,12 @@ export function SettingsView() {
           {!hydrated && <p className="mt-2 text-xs text-muted">Loading the saved workspace before enabling backup actions…</p>}
           {pendingImport && hydrated && (
             <div className="mt-4 rounded-xl border border-high bg-high/20 p-3" role="status">
-              <p className="text-sm font-semibold">Backup validated — confirmation required</p>
-              <p className="mt-1 text-xs text-muted">Exported {new Date(pendingImport.exportedAt).toLocaleString()}. This will replace the current local data with {pendingImport.counts.tasks} tasks, {pendingImport.counts.projects} projects, {pendingImport.counts.members} members, and {pendingImport.counts.notifications} notifications.</p>
+              <p className="text-sm font-semibold">Backup validated — choose how to apply it</p>
+              <p className="mt-1 text-xs text-muted">Exported {new Date(pendingImport.exportedAt).toLocaleString()}. Contains {pendingImport.counts.tasks} tasks, {pendingImport.counts.projects} projects, {pendingImport.counts.members} members and {pendingImport.counts.notifications} notifications.</p>
+              <p className="mt-1 text-xs text-muted">Merge adds records with new IDs and links matching-ID records to their source without overwriting task status, due dates, assignments or settings. Replace discards current local records; export a backup first.</p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <button type="button" onClick={restoreBackup} className="min-h-10 rounded-xl bg-high-ink px-3 text-sm font-semibold text-primary-fg">Replace current data</button>
+                <button type="button" onClick={mergeBackup} className="min-h-10 rounded-xl bg-primary px-3 text-sm font-semibold text-primary-fg">Merge missing records</button>
+                <button type="button" onClick={restoreBackup} className="min-h-10 rounded-xl border border-high px-3 text-sm font-semibold">Replace current data</button>
                 <button type="button" onClick={() => setPendingImport(null)} className="min-h-10 rounded-xl px-3 text-sm font-semibold">Cancel</button>
               </div>
             </div>
@@ -622,8 +631,8 @@ export function SettingsView() {
           </ul>
         </section>
         <section className="rounded-2xl border border-high bg-high/40 p-4">
-          <h2 className="font-semibold text-high-ink">Reset demo</h2>
-          <p className="mt-1 text-sm text-muted">Puts the sample catalog, team, and dates back. Your browser edits are lost; if cloud sync is active, the reset state will also be saved to the server. Export a backup first if you need to preserve either copy.</p>
+          <h2 className="font-semibold text-high-ink">Reset to portfolio baseline</h2>
+          <p className="mt-1 text-sm text-muted">Replaces this browser’s local tasks and projects with the current portfolio baseline. Custom local records and edits will be lost. Export a backup first. This action does not change or sync the separate cloud workspace.</p>
           {confirm ? (
             <div className="mt-3 flex gap-2">
               <button
@@ -643,7 +652,7 @@ export function SettingsView() {
             </div>
           ) : (
             <button type="button" onClick={() => setConfirm(true)} className="mt-3 min-h-11 rounded-xl bg-high-ink px-4 text-sm font-semibold text-primary-fg">
-              Reset demo data
+              Reset local portfolio data
             </button>
           )}
         </section>

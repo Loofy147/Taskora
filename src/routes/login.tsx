@@ -19,7 +19,7 @@ function Login() {
   }
 
   if (authEnabled && user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/workspace" replace />;
   }
 
   return (
@@ -41,7 +41,7 @@ function Login() {
                 onClick={() => {
                   setPendingProviderId(provider.providerId);
                   setError(null);
-                  void signIn(provider.providerId, { callbackURL: "/" })
+                  void signIn(provider.providerId, { callbackURL: "/workspace", errorCallbackURL: "/login" })
                     .catch((cause: unknown) => {
                       setError(cause instanceof Error ? cause.message : "Could not start sign-in. Please retry.");
                     })
@@ -61,6 +61,18 @@ function Login() {
             Sign-in is disabled for this deployment. Configure VITE_AUTH_ENABLED, the authentication provider, and a server database before enabling cloud persistence.
           </p>
         )}
+        <div className="rounded-xl border border-line p-3">
+          <p className="text-sm font-semibold">Need to start working now?</p>
+          <p className="mt-1 text-xs text-muted">Open your personal board. It works independently while cloud sign-in is unavailable; records do not sync between deployments.</p>
+          <a
+            href="https://taskora-ube0f6.v2.appdeploy.ai/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-line px-4 text-sm font-semibold hover:bg-chip"
+          >
+            Open personal board
+          </a>
+        </div>
         <Link to="/" className="inline-flex min-h-10 items-center text-sm font-medium text-primary-ink hover:underline">
           Back to Taskora
         </Link>
