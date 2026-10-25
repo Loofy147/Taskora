@@ -4,7 +4,7 @@ Taskora is a business task-management interface for organizing shared work acros
 
 > **GitHub source status at `5cc1891`: prototype; not production-ready.** This repository contains the React/TanStack Start implementation. It uses browser-local task state with an opt-in personal whole-workspace snapshot bridge; the shipped `.grok/app-env.json` disables authentication and database provisioning. Repository-level per-task CRUD, live authenticated PostgreSQL, team sharing, invitations and binary file storage are not enabled.
 >
-> **Separate AppDeploy staging port:** a different app has an independently deployed, opt-in task-level persistence implementation. It does not import or track this repository automatically. See [AppDeploy staging status](docs/APPDEPLOY_STAGING.md) and the [final release runbook](docs/FINAL_RELEASE_RUNBOOK.md) before treating either implementation as a production release.
+> **Separate AppDeploy preview:** the current staging instance is [Taskora Preview](https://taskora-preview-tgnqhs.v2.appdeploy.ai/) (`taskora-preview-tgnqhs`, snapshot `1792952556392`). The user has reported successful sign-in and task creation, but authenticated edit/reload/delete, stale-write conflicts and account isolation have not been independently verified. It does not import or track this repository automatically. See [AppDeploy staging status](docs/APPDEPLOY_STAGING.md) and the [final release runbook](docs/FINAL_RELEASE_RUNBOOK.md) before treating either implementation as a production release.
 
 ## Current interface
 
