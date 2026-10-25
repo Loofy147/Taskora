@@ -8,7 +8,7 @@
 Before each task, record which implementation is being changed:
 
 - **GitHub source:** `Loofy147/Taskora`, branch/ref/commit, React/TanStack Start, Better Auth and PostgreSQL/PGlite.
-- **AppDeploy staging port:** app ID `taskora-ube0f6`, current deployed source revision `1792338457910` (v14; Settings order and cloud-status guard deployed; authenticated E2E unverified), AppDeploy auth and managed key-value database.
+- **AppDeploy staging port (current preview):** app ID `taskora-preview-tgnqhs`, deployed snapshot `1792952556392`, URL https://taskora-preview-tgnqhs.v2.appdeploy.ai/. It uses AppDeploy auth and a managed key-value database; authenticated E2E is not independently verified. The prior instance `taskora-ube0f6` at revision `1792338457910` is a historical baseline, not the current preview target.
 
 These are separate artifacts. A CI result on GitHub is not an AppDeploy E2E result. An AppDeploy-ready status is not a GitHub source deployment, a real PostgreSQL migration, or a production gate pass.
 
@@ -81,6 +81,14 @@ Record:
 - known limitations and rollback/recovery decision.
 
 A deployment marked `ready` with an empty error list is not enough. The final gate requires an executed E2E result plus the manual security/persistence checks above.
+
+## 5A. Current AppDeploy preview evidence — 2026-10-25
+
+- **Deployment:** `taskora-preview-tgnqhs`, snapshot `1792952556392`, reported `ready`.
+- **API boundary:** the correct API gateway health endpoint returned `status: ok`; anonymous task-list access returned `401` as expected for a protected route.
+- **USER_REPORTED:** the user signed in and created a task in the preview. Record this as a user-reported basic smoke test, not a fully executed E2E suite.
+- **Independent audit:** the audit browser profile was signed out and therefore did not perform authenticated CRUD. No user tasks were modified by the audit run.
+- **Still required:** independently verify task edit/status/reload/delete, stale-revision conflict behavior, and account A/B isolation. Keep the release on staging hold until the applicable gates have evidence.
 
 ## 6. Release decision
 
