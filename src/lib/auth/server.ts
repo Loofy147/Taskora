@@ -40,6 +40,7 @@ import { emailAndPasswordEnabled } from "./email-password";
 import { GATE_PROVIDER_ID, gateIdentitySessions } from "./gate-session.server";
 import { GROK_PROVIDERS } from "./providers";
 import { pgliteDialect } from "./pglite-dialect";
+import { DatabaseNotConfiguredError, isRuntimeAuthConfigured, isRuntimeAuthEnabled } from "../runtime-mode.ts";
 import {
   GROK_ISSUER_DEFAULT,
   PREVIEW_ALLOWED_HOSTS,
@@ -72,7 +73,11 @@ const env = (key: string): string | undefined => {
 
 // Explicit off-switch. The deployer sets `VITE_AUTH_ENABLED=true` when it
 // provisions auth; set it to "false" to force auth off everywhere (dev user).
-const authDisabled = env("VITE_AUTH_ENABLED") === "false";
+const isVercelRuntime = env("VERCEL") === "1";
+const authDisabled = !isRuntimeAuthEnabled({
+  authFlag: env("VITE_AUTH_ENABLED"),
+  isVercelRuntime,
+});
 
 // Broker federation creds: the deployer injects a per-app client when deployed;
 // otherwise fall back to the shared live-preview client, which the broker accepts
@@ -83,7 +88,16 @@ const grokClientSecret = env("GROK_AUTH_CLIENT_SECRET") ?? PREVIEW_CLIENT_SECRET
 
 /** True when federated sign-in is active (real auth is enforced). */
 export const authConfigured =
-  !authDisabled && Boolean(grokClientId && grokClientSecret);
+  isRuntimeAuthConfigured({
+    authFlag: env("VITE_AUTH_ENABLED"),
+    isVercelRuntime,
+    databaseUrl: env("DATABASE_URL"),
+    betterAuthUrl: env("BETTER_AUTH_URL"),
+    betterAuthSecret: env("BETTER_AUTH_SECRET"),
+    grokAuthIssuer: env("GROK_AUTH_ISSUER"),
+    grokAuthClientId: env("GROK_AUTH_CLIENT_ID"),
+    grokAuthClientSecret: env("GROK_AUTH_CLIENT_SECRET"),
+  }) && Boolean(grokClientId && grokClientSecret);
 
 // This app's own Better Auth origin. When deployed the deployer injects the
 // public URL. In the sandbox live preview there's no fixed URL (each preview gets
@@ -143,7 +157,13 @@ const grokUserInfoUrl = `${issuerBase}/api/auth/oauth2/userinfo`;
 // the app turns sign-in on.
 const database = databaseUrl
   ? new Pool({ connectionString: databaseUrl })
-  : { dialect: pgliteDialect(() => getPglite()), type: "postgres" as const };
+  : {
+      dialect: pgliteDialect(() => {
+        if (isVercelRuntime) throw new DatabaseNotConfiguredError();
+        return getPglite();
+      }),
+      type: "postgres" as const,
+    };
 
 /** Session token cookie name — also read by the live-preview popup completion page. */
 export const SESSION_TOKEN_COOKIE = "__Host-grok-auth.session_token";

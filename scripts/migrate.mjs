@@ -19,7 +19,7 @@ import pg from "pg";
 import { migrationsForAuthMode, pendingMigrations } from "./migration-plan.mjs";
 import { mergeAppEnv, projectRoot, readAppEnv } from "./with-app-env.mjs";
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = process.env.DATABASE_URL?.trim() || undefined;
 const resolvedAppEnv = mergeAppEnv(readAppEnv(projectRoot()), process.env);
 const authEnabledFlag = resolvedAppEnv.VITE_AUTH_ENABLED;
 if (!databaseUrl) {

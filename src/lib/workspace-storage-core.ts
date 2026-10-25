@@ -11,9 +11,9 @@ import {
 
 const MAX_USER_ID_LENGTH = 512;
 
-/** False only for the explicit shared-demo identity mode. */
+/** Persistence is enabled only when authentication was explicitly configured on. */
 export function storageAuthModeAllowsPersistence(authEnabledFlag: string | undefined): boolean {
-  return authEnabledFlag?.trim() !== "false";
+  return authEnabledFlag?.trim().toLowerCase() === "true";
 }
 
 /** Stable opaque ID for the authenticated user's personal workspace. */
